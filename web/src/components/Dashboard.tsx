@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 import { POLL_MS } from "../lib/useLedger";
 import { short, units } from "../lib/format";
-import type { LedgerRow, State } from "../lib/types";
+import type { LedgerRow, State, System } from "../lib/types";
+import { Distribution } from "./Distribution";
+import { SystemPanel } from "./SystemPanel";
 
 /** The ledger grows without bound; the page should not. */
 const VISIBLE_ROWS = 25;
@@ -9,10 +11,12 @@ const VISIBLE_ROWS = 25;
 interface Props {
   rows: LedgerRow[];
   state: State | null;
+  system: System | null;
   error: string | null;
+  settled: boolean;
 }
 
-export function Dashboard({ rows, state, error }: Props) {
+export function Dashboard({ rows, state, system, error, settled }: Props) {
   const ordered = useMemo(() => [...rows].sort((a, b) => b.servedAt - a.servedAt), [rows]);
 
   const budget = state?.sla.maxLatencyMs ?? 800;
@@ -42,7 +46,21 @@ export function Dashboard({ rows, state, error }: Props) {
           </div>
         </div>
 
-        {error && <div className="error">{error}</div>}
+        {error && settled && (
+          <div className="offline" data-reveal>
+            <p className="offline-head">Nothing is serving on this port.</p>
+            <p>
+              This section reads from a live instance rather than a fixture, so with the seller
+              stopped there is genuinely nothing to show. Bring it up with:
+            </p>
+            <code>npm run serve --workspace demo</code>
+            <p className="offline-note">
+              It needs a chain at <span className="code">127.0.0.1:8545</span> — start one with{" "}
+              <span className="code">anvil</span> if there isn't one. The page reconnects on its
+              own.
+            </p>
+          </div>
+        )}
 
         <dl className="terms" data-reveal>
           <div className="term">
@@ -115,6 +133,13 @@ export function Dashboard({ rows, state, error }: Props) {
             <p className="note">Unchanged no matter how many calls are made</p>
           </div>
         </div>
+
+        <div className="section-head">
+          <h2>Where the line falls</h2>
+          <span>every call served, by response time</span>
+        </div>
+
+        <Distribution rows={ordered} budget={budget} />
 
         <div className="section-head">
           <h2>Call ledger</h2>
@@ -191,6 +216,13 @@ export function Dashboard({ rows, state, error }: Props) {
             </table>
           )}
         </div>
+
+        <div className="section-head">
+          <h2>The system, reporting on itself</h2>
+          <span>read from the chain, not from this page</span>
+        </div>
+
+        <SystemPanel system={system} />
 
         <p className="footnote">
           <strong>What to watch.</strong> Every breached row was charged nothing, and the buyer's

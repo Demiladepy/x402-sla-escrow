@@ -24,3 +24,59 @@ export interface State {
   buyerTxCount: number;
   buyerTxCountAfterSetup: number;
 }
+
+export interface Settlement {
+  txHash: string;
+  calls: number;
+  gasUsed: string;
+  blockNumber: string;
+  at: number;
+}
+
+/**
+ * What the system reports about itself: the chain it is bound to, the invariant
+ * it maintains, what settlement costs, and the attribution actually decoded
+ * from calldata rather than the codes we intended to send.
+ */
+export interface System {
+  chain: { chainId: number; blockNumber: string; rpc: string };
+  contract: {
+    escrow: string;
+    asset: string;
+    endpointId: string;
+    seller: string;
+    price: string;
+    maxLatencyMs: number;
+    expectedStatus: number;
+    schemaHash: string;
+    challengeWindowSec: string;
+    active: boolean;
+    bond: string;
+  };
+  solvency: {
+    held: string;
+    owed: string;
+    ok: boolean;
+    buyerBalance: string;
+    sellerBalance: string;
+  };
+  settlement: {
+    transactions: number;
+    callsSettled: number;
+    gasTotal: string;
+    gasPerCall: number | null;
+    amortisation: {
+      size: number;
+      batches: number;
+      gasPerBatch: number;
+      gasPerCall: number;
+    }[];
+    recent: Settlement[];
+  };
+  attribution: {
+    codes: string[];
+    verifiedCodes: string[] | null;
+    verifiedTx: string | null;
+    required: boolean;
+  };
+}

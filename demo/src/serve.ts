@@ -6,7 +6,7 @@ import {
   createBuyerClient,
   createSettler,
 } from "@x402sla/sdk";
-import { buyer, deploy, publicClient, seller, walletFor } from "./chain.js";
+import { RPC_URL, buyer, deploy, publicClient, seller, walletFor } from "./chain.js";
 import { SCHEMA_HASH, createSellerApp } from "./seller-app.js";
 
 /**
@@ -47,7 +47,29 @@ const ERC20 = [
     ],
     outputs: [],
   },
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ] as const;
+
+/**
+ * One settlement, with what it actually cost.
+ *
+ * Gas is recorded per transaction rather than estimated per call, because the
+ * amortisation claim — many calls, one transaction — is only worth making if
+ * the real number backs it.
+ */
+interface Settlement {
+  txHash: Hex;
+  calls: number;
+  gasUsed: string;
+  blockNumber: string;
+  at: number;
+}
 
 const PAIRS = ["CUSD/NGN", "CUSD/KES", "CUSD/GHS"];
 
@@ -158,6 +180,19 @@ async function main() {
     port: PORT,
   });
 
+  const settlements: Settlement[] = [];
+  let attributionVerified: { codes: string[]; txHash: Hex } | null = null;
+
+  const settler = createSettler({
+    wallet: sellerWallet,
+    publicClient,
+    account: seller,
+    escrow: escrow.address,
+    store,
+    attributionCodes: attributionCodesFromEnv(),
+    feeCurrency: process.env.FEE_CURRENCY as Address | undefined,
+  });
+
   // State the dashboard needs, so the browser never has to reach the chain.
   app.get("/api/state", async (_req, res) => {
     const [buyerBal, sellerBal, nonce] = await Promise.all([
@@ -192,6 +227,111 @@ async function main() {
     });
   });
 
+  /**
+   * The system describing itself: what it is bound to, what it holds against
+   * what it owes, and what settlement actually costs.
+   *
+   * Separate from /api/state because this is the part that does not change
+   * call-to-call, and it is read from the chain and from transaction receipts
+   * rather than from the seller's own bookkeeping.
+   */
+  app.get("/api/system", async (_req, res) => {
+    const [blockNumber, endpoint, held, buyerBal, sellerBal] = await Promise.all([
+      publicClient.getBlockNumber(),
+      publicClient.readContract({
+        address: escrow.address,
+        abi: SLA_ESCROW_ABI,
+        functionName: "endpoints",
+        args: [endpointId as Hex],
+      }) as Promise<readonly [Address, bigint, number, number, Hex, bigint, boolean]>,
+      publicClient.readContract({
+        address: token.address,
+        abi: ERC20,
+        functionName: "balanceOf",
+        args: [escrow.address],
+      }) as Promise<bigint>,
+      publicClient.readContract({
+        address: escrow.address,
+        abi: SLA_ESCROW_ABI,
+        functionName: "buyerBalance",
+        args: [buyer.address as Address],
+      }) as Promise<bigint>,
+      publicClient.readContract({
+        address: escrow.address,
+        abi: SLA_ESCROW_ABI,
+        functionName: "sellerBalance",
+        args: [seller.address as Address],
+      }) as Promise<bigint>,
+    ]);
+
+    // The invariant the contract test asserts, recomputed live: the escrow must
+    // hold at least every balance it is on the hook for, bond included.
+    const owed = buyerBal + sellerBal + BOND;
+
+    const callsSettled = settlements.reduce((n, s) => n + s.calls, 0);
+    const gasTotal = settlements.reduce((n, s) => n + BigInt(s.gasUsed), 0n);
+
+    // Gas grouped by how many calls the transaction carried. This is the
+    // amortisation claim measured rather than asserted: a fixed per-transaction
+    // overhead spread across more calls should show up as a falling per-call
+    // cost, and if it does not, the claim was wrong.
+    const bySize = new Map<number, { batches: number; gas: bigint }>();
+    for (const s of settlements) {
+      const seen = bySize.get(s.calls) ?? { batches: 0, gas: 0n };
+      seen.batches += 1;
+      seen.gas += BigInt(s.gasUsed);
+      bySize.set(s.calls, seen);
+    }
+    const amortisation = [...bySize.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([size, agg]) => ({
+        size,
+        batches: agg.batches,
+        gasPerBatch: Number(agg.gas / BigInt(agg.batches)),
+        gasPerCall: Number(agg.gas / BigInt(agg.batches * size)),
+      }));
+
+    res.json({
+      chain: { chainId, blockNumber: blockNumber.toString(), rpc: RPC_URL },
+      contract: {
+        escrow: escrow.address,
+        asset: token.address,
+        endpointId,
+        seller: endpoint[0],
+        price: endpoint[1].toString(),
+        maxLatencyMs: endpoint[2],
+        expectedStatus: endpoint[3],
+        schemaHash: endpoint[4],
+        challengeWindowSec: endpoint[5].toString(),
+        active: endpoint[6],
+        bond: BOND.toString(),
+      },
+      solvency: {
+        held: held.toString(),
+        owed: owed.toString(),
+        ok: held >= owed,
+        buyerBalance: buyerBal.toString(),
+        sellerBalance: sellerBal.toString(),
+      },
+      settlement: {
+        transactions: settlements.length,
+        callsSettled,
+        gasTotal: gasTotal.toString(),
+        gasPerCall: callsSettled > 0 ? Number(gasTotal / BigInt(callsSettled)) : null,
+        amortisation,
+        recent: settlements.slice(-12).reverse(),
+      },
+      attribution: {
+        codes: settler.attributionCodes,
+        // Decoded from calldata, so this reports what an indexer would read
+        // rather than what we intended to send.
+        verifiedCodes: attributionVerified?.codes ?? null,
+        verifiedTx: attributionVerified?.txHash ?? null,
+        required: chainId === 42220,
+      },
+    });
+  });
+
   await new Promise<void>((resolve) => reserved.close(() => resolve()));
 
   app.listen(PORT, () => {
@@ -203,31 +343,28 @@ async function main() {
   const client = createBuyerClient({ account: buyer, escrow: escrow.address, chainId });
   const terms = await client.discover(`${BASE}/api/rate`);
 
-  const settler = createSettler({
-    wallet: sellerWallet,
-    publicClient,
-    account: seller,
-    escrow: escrow.address,
-    store,
-    attributionCodes: attributionCodesFromEnv(),
-    feeCurrency: process.env.FEE_CURRENCY as Address | undefined,
-  });
-
-  // Verified once, on the first settlement only: if the tag is wrong we want to
-  // know at call one, not after a night of unattributed traffic.
-  let attributionChecked = settler.attributionCodes.length === 0;
-
   settler.start(SETTLE_INTERVAL_MS, async (r) => {
     console.log(`settled ${r.count} call(s) for ${formatUnits(r.grossAmount, 18)} cUSD  ${r.txHash}`);
 
-    if (!attributionChecked) {
-      attributionChecked = true;
+    const receipt = await publicClient.waitForTransactionReceipt({ hash: r.txHash });
+    settlements.push({
+      txHash: r.txHash,
+      calls: r.count,
+      gasUsed: receipt.gasUsed.toString(),
+      blockNumber: receipt.blockNumber.toString(),
+      at: Date.now(),
+    });
+
+    // Verified on the first settlement only: if the tag is wrong we want to
+    // know at call one, not after a night of unattributed traffic.
+    if (attributionVerified === null && settler.attributionCodes.length > 0) {
       const attr = await settler.verifyAttribution(r.txHash);
-      console.log(
-        attr.ok
-          ? `attribution verified on-chain: ${attr.codes.join(", ")}`
-          : `ATTRIBUTION MISSING from ${r.txHash} — expected ${attr.missing.join(", ")}`,
-      );
+      if (attr.ok) {
+        attributionVerified = { codes: attr.codes, txHash: r.txHash };
+        console.log(`attribution verified on-chain: ${attr.codes.join(", ")}`);
+      } else {
+        console.error(`ATTRIBUTION MISSING from ${r.txHash} — expected ${attr.missing.join(", ")}`);
+      }
     }
   });
 

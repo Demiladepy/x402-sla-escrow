@@ -298,7 +298,9 @@ a:hover {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .dot:not(.stale) {
+  /* Only the genuinely-live dot pulses; a stale or connecting one must not
+     imply activity it does not have. */
+  .dot:not(.stale):not(.waiting) {
     animation: pulse 2.4s var(--ease-out-quint) infinite;
   }
 }
@@ -358,33 +360,53 @@ a:hover {
 }
 
 /* The one number the whole argument rests on. Typographic, not a card. */
-.proof {
+/*
+ * The headline proof is a sentence, not a scoreboard.
+ *
+ * A lone giant numeral needs a label to mean anything, and when the figure is
+ * unavailable it degrades into a large piece of punctuation that reads as a
+ * rendering fault. Setting the numbers inside the claim keeps them legible at
+ * any value and lets the fallback be an honest sentence instead.
+ */
+.claim {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3xs);
+  gap: var(--space-2xs);
+  max-width: 46ch;
 }
 
-.proof-label {
-  font-size: 0.75rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.proof-value {
+.claim-line {
   font-family: var(--display);
-  font-size: clamp(3.5rem, 9vw, 7rem);
+  font-size: clamp(1.5rem, 2.8vw, 2.125rem);
+  font-weight: 600;
+  font-stretch: 112%;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: var(--text-dim);
+  text-wrap: pretty;
+}
+
+.claim-line em {
+  font-style: normal;
   font-weight: 800;
   font-stretch: 125%;
-  line-height: 0.82;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
 
-.proof-note {
+.claim-line.pending {
+  font-family: var(--body);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+.claim-note {
   font-size: 0.875rem;
   color: var(--text-muted);
-  max-width: 34ch;
+  max-width: 38ch;
 }
 
 .jump {
@@ -923,6 +945,399 @@ footer.foot a {
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--text-dim);
+}
+
+/* ── Latency distribution ────────────────────────────────────────────────
+ *
+ * The one chart on the page, and it earns its place: it is the mechanism drawn
+ * to scale. Columns are the real distribution of every call served; the rule is
+ * the SLA budget. Bars sit neutral, breaching bars go terracotta, and the
+ * accent is spent on the threshold alone — the line is the point.
+ */
+
+.dist {
+  margin-top: var(--space-lg);
+}
+
+.dist-chart {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  align-items: end;
+  gap: 2px;
+  height: clamp(180px, 26vh, 260px);
+  padding-bottom: 22px;
+}
+
+.dist-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.dist-bar {
+  width: 100%;
+  min-height: 1px;
+  background: var(--surface-high);
+  border-top: 1px solid var(--line);
+  transition: height 520ms var(--ease-out-expo);
+}
+
+.dist-col.breach .dist-bar {
+  background: oklch(0.42 0.11 34 / 0.5);
+  border-top-color: var(--breach);
+}
+
+.dist-count {
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  padding-bottom: var(--space-3xs);
+  line-height: 1;
+}
+
+.dist-tick {
+  position: absolute;
+  bottom: -18px;
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dist-threshold {
+  position: absolute;
+  top: -6px;
+  bottom: 22px;
+  width: 1px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.dist-threshold-label {
+  position: absolute;
+  top: -6px;
+  left: 6px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  background: var(--accent);
+  padding: 2px 5px;
+  white-space: nowrap;
+}
+
+.dist-axis {
+  margin-top: var(--space-md);
+  padding-top: var(--space-2xs);
+  border-top: 1px solid var(--line-soft);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.dist-read {
+  margin-top: var(--space-lg);
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+/* Page-level layout, so this is a viewport query rather than a container one. */
+@media (max-width: 760px) {
+  .dist-read {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+}
+
+.dist-read p {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-width: 56ch;
+}
+
+.dist-read strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.dist-stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: var(--space-sm) var(--space-md);
+}
+
+.dist-stats dt {
+  font-size: 0.625rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.dist-stats dd {
+  margin: var(--space-3xs) 0 0;
+  font-family: var(--display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-stretch: 112%;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.dist-empty,
+.sys-empty {
+  margin-top: var(--space-lg);
+  padding: var(--space-lg) 0;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  max-width: var(--measure);
+  line-height: 1.65;
+}
+
+/* ── System panel ───────────────────────────────────────────────────────── */
+
+.sys {
+  margin-top: var(--space-lg);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
+  gap: 1px;
+  background: var(--line-soft);
+  border: 1px solid var(--line-soft);
+}
+
+.sys-card {
+  background: var(--bg);
+  padding: var(--space-md);
+  container-type: inline-size;
+}
+
+.sys-card h3 {
+  font-size: 0.9375rem;
+  font-stretch: 108%;
+  line-height: 1.25;
+  margin-bottom: var(--space-sm);
+}
+
+.sys-figure {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3xs) 6px;
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 4cqi, 2rem);
+  font-weight: 800;
+  font-stretch: 118%;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.sys-figure-unit {
+  font-family: var(--body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+.sys-arrow {
+  color: var(--text-faint);
+  font-weight: 400;
+  padding: 0 var(--space-3xs);
+}
+
+.sys-verdict {
+  font-family: var(--display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-stretch: 112%;
+}
+
+.sys-verdict.ok {
+  color: var(--accent);
+}
+
+.sys-verdict.bad {
+  color: var(--breach);
+}
+
+.sys-rows {
+  margin: var(--space-sm) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.sys-rows > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-bottom: var(--space-2xs);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.sys-rows > div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.sys-rows dt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.sys-rows dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sys-codes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+.sys-codes li {
+  padding: 4px 9px;
+  border: 1px solid var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.8125rem;
+}
+
+.sys-codes li.pending {
+  border-color: var(--line);
+  color: var(--text-muted);
+}
+
+/*
+ * The amortisation curve. The bar is drawn behind the figure it belongs to
+ * rather than in a separate column, so a falling per-call cost is legible as a
+ * shape without the row turning into a chart.
+ */
+.sys-curve {
+  width: 100%;
+  margin-top: var(--space-sm);
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.sys-curve th {
+  text-align: left;
+  padding: 0 0 var(--space-3xs);
+  border-bottom: 1px solid var(--line-soft);
+  font-family: var(--body);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.sys-curve th:last-child,
+.sys-curve td:last-child {
+  text-align: right;
+}
+
+.sys-curve td {
+  position: relative;
+  padding: var(--space-2xs) 0;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.sys-curve tr:last-child td {
+  border-bottom: 0;
+}
+
+.sys-curve-bar {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  height: 2px;
+  background: var(--accent-dim);
+  opacity: 0.55;
+  transition: width 520ms var(--ease-out-expo);
+}
+
+.sys-note,
+.sys-wait {
+  margin-top: var(--space-sm);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── Offline ─────────────────────────────────────────────────────────────
+ *
+ * An empty state that teaches rather than blames. The section reads from a
+ * live process, so its absence is worth explaining precisely — including the
+ * dependency one step further back, which is the usual actual cause.
+ */
+
+.offline {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  max-width: var(--measure);
+}
+
+.offline p {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.offline-head {
+  font-family: var(--display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  font-stretch: 110%;
+  color: var(--text) !important;
+  margin-bottom: var(--space-2xs) !important;
+}
+
+.offline code {
+  display: block;
+  margin: var(--space-sm) 0;
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--void);
+  border: 1px solid var(--line-soft);
+  font-family: var(--display);
+  font-stretch: 100%;
+  font-size: 0.8125rem;
+  color: var(--accent);
+  overflow-x: auto;
+}
+
+.offline-note {
+  font-size: 0.8125rem !important;
+  color: var(--text-faint) !important;
+}
+
+.dot.waiting {
+  background: var(--text-muted);
+  box-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

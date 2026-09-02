@@ -6,7 +6,7 @@ import { useLedger } from "./lib/useLedger";
 import { useReveal } from "./lib/useReveal";
 
 export default function App() {
-  const { rows, state, error, fresh } = useLedger();
+  const { rows, state, system, error, fresh, settled } = useLedger();
   useReveal();
 
   return (
@@ -26,17 +26,23 @@ export default function App() {
               <a href="#ledger">Live ledger</a>
             </nav>
             <span className="live">
-              <span className={`dot${fresh ? "" : " stale"}`} />
-              {fresh ? "live" : "offline"}
+              <span className={`dot${fresh ? "" : settled ? " stale" : " waiting"}`} />
+              {fresh ? "live" : settled ? "offline" : "connecting"}
             </span>
           </div>
         </header>
 
         <main>
-          <Hero state={state} callCount={rows.length} />
+          <Hero state={state} callCount={rows.length} settled={settled} />
           <Mechanism />
           <Enforcement />
-          <Dashboard rows={rows} state={state} error={error} />
+          <Dashboard
+            rows={rows}
+            state={state}
+            system={system}
+            error={error}
+            settled={settled}
+          />
         </main>
 
         <footer className="foot">

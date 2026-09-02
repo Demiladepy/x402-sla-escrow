@@ -171,6 +171,42 @@ widths for display against Schibsted Grotesk for body, with tabular figures in
 the ledger so columns compare down a row. No new dependencies: motion is CSS,
 reveals use one `IntersectionObserver`.
 
+### Second pass: showing the engineering, not describing it
+
+The first version read as a marketing page because the parts that prove
+anything were thin, and because with the seller stopped the whole live section
+collapsed into em-dashes. Both are fixed.
+
+`/api/system` was added to the seller and reports what the system knows about
+itself, read from the chain and from transaction receipts rather than from the
+seller's own bookkeeping:
+
+| Surface | What it shows |
+|---|---|
+| Latency distribution | Every call served, log-bucketed, with the SLA budget on a bucket boundary so no column straddles the line the payment stops at. p50/p95/p99 and the slowest call that still got paid. |
+| Amortisation curve | Gas per call grouped by batch size, from real receipts. Measured 175,708 → 164,391 → 160,863 as batches grew 2 → 3 → 4. |
+| Solvency invariant | `held ≥ buyer + seller + bond`, recomputed from chain state every poll — the same property the test suite asserts, checked against a system that has been running. |
+| Attribution | The codes decoded out of a sent transaction's calldata, with the tx they came from. |
+| Chain binding | Chain id, block, escrow, asset, schema hash and challenge window read from `endpoints(bytes32)`. |
+
+Three corrections worth recording:
+
+- The first draft compared batched gas against 231k from
+  `test_Unilateral_PendsThenClaims`. That is the *unilateral two-transaction*
+  path, not the fast path, so it overstated the saving. Replaced with the
+  measured curve, which makes the honest point: batching amortises the
+  per-transaction overhead, not the per-call signature and storage work.
+- The hero was a giant numeral over a small label — the pattern the design
+  guidance calls a template, and the reason a missing value rendered as a
+  7rem em-dash that looked like a broken asset. It is now a sentence with the
+  figures set inline, so the fallback can be an honest clause.
+- `Math.max(...rows)` throws once the array passes ~65k arguments, and the
+  ledger grows for as long as the demo runs. Replaced with a reduce.
+
+Known gap: `/api/ledger` returns the full history on every 1.5s poll, so a demo
+left running for hours sends a large payload repeatedly. Fine for a demo, wrong
+for anything longer.
+
 ## Registration groundwork (done)
 
 Decisions taken: primary track `judges-favorite`, buy closed beta opted in,

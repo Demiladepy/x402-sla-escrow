@@ -3,9 +3,10 @@ import type { State } from "../lib/types";
 interface Props {
   state: State | null;
   callCount: number;
+  settled: boolean;
 }
 
-export function Hero({ state, callCount }: Props) {
+export function Hero({ state, callCount, settled }: Props) {
   const buyerTxs = state ? state.buyerTxCount - state.buyerTxCountAfterSetup : null;
 
   return (
@@ -25,13 +26,21 @@ export function Hero({ state, callCount }: Props) {
       </p>
 
       <div className="hero-foot">
-        <div className="proof" data-reveal style={{ "--i": 3 } as React.CSSProperties}>
-          <span className="proof-label">Buyer transactions since deposit</span>
-          <span className="proof-value">{buyerTxs ?? "—"}</span>
-          <span className="proof-note">
-            {callCount > 0
-              ? `The deposit was the last transaction the buyer sent. All ${callCount} calls since cost it no gas.`
-              : "The buyer signs authorizations off-chain. It never transacts to pay."}
+        <div className="claim" data-reveal style={{ "--i": 3 } as React.CSSProperties}>
+          {buyerTxs === null ? (
+            <p className="claim-line pending">
+              {settled
+                ? "The live figures on this page come from a running instance. Start it with npm run serve --workspace demo."
+                : "Reading the buyer's transaction count from the chain…"}
+            </p>
+          ) : (
+            <p className="claim-line">
+              The buyer has sent <em>{buyerTxs}</em> transactions since its deposit, across{" "}
+              <em>{callCount.toLocaleString()}</em> paid calls.
+            </p>
+          )}
+          <span className="claim-note">
+            Authorizations are signed off-chain. Paying costs the buyer no gas and no transaction.
           </span>
         </div>
 
