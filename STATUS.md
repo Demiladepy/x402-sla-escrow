@@ -168,8 +168,17 @@ foreground, oversized confident type, one orchestrated reveal per section.
 Palette is near-black tinted toward Celo's yellow hue with Celo yellow as a
 rare accent, spent on the number being proven. Type is Archivo at expanded
 widths for display against Schibsted Grotesk for body, with tabular figures in
-the ledger so columns compare down a row. No new dependencies: motion is CSS,
-reveals use one `IntersectionObserver`.
+the ledger so columns compare down a row.
+
+Motion is GSAP 3.15. The dependency was already listed; the page was still
+static because `enableMotion()` was never called, so the CSS gate that hides
+pre-reveal content never matched and CSS keyframes still drove the background.
+That is now wired before React paints. Atmosphere runs on `gsap.ticker` (and
+sleeps with `gsap.globalTimeline` when the tab is hidden). Reveals go through
+a named `gsap.effects.revealUp`. The headline is SplitText, clipped per line.
+Scroll is `ScrollToPlugin`. New ledger rows fade in after the first paint;
+history does not replay. Reduced-motion users never take the hidden-until-animated
+path, so a failed bundle cannot leave the page blank.
 
 ### Second pass: showing the engineering, not describing it
 

@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
+import { DUR, EASE, ScrollTrigger, gsap, reducedMotion } from "../lib/motion";
 import type { LedgerRow } from "../lib/types";
 
 /**
@@ -30,6 +31,9 @@ interface Props {
 }
 
 export function Distribution({ rows, budget }: Props) {
+  const root = useRef<HTMLDivElement>(null);
+  const played = useRef(false);
+
   const stats = useMemo(() => {
     const latencies = rows.map((r) => r.latencyMs).sort((a, b) => a - b);
 
@@ -64,6 +68,81 @@ export function Distribution({ rows, budget }: Props) {
       slowestPaid: rows.reduce((m, r) => (r.acked && r.latencyMs > m ? r.latencyMs : m), 0),
     };
   }, [rows, budget]);
+
+  /**
+   * The chart assembles itself in the order the argument runs: the population
+   * first, then the line, then the consequence.
+   *
+   * Bars scale from their baseline rather than animating height, so this never
+   * fights the inline height React sets on every poll — GSAP owns the entrance
+   * transform, CSS owns subsequent height changes.
+   *
+   * Plays once. A histogram that re-animates on every data refresh would be
+   * unreadable, and re-animating on scroll-back reads as a glitch.
+   */
+  useLayoutEffect(() => {
+    const el = root.current;
+    if (!el || played.current || stats.total === 0) return;
+
+    const bars = gsap.utils.toArray<HTMLElement>(".dist-bar", el);
+    const line = el.querySelector<HTMLElement>(".dist-threshold");
+    const breaches = gsap.utils.toArray<HTMLElement>(".dist-col.breach .dist-bar", el);
+    if (bars.length === 0) return;
+
+    played.current = true;
+
+    if (reducedMotion()) {
+      gsap.set([...bars, line].filter(Boolean), { scaleY: 1, opacity: 1 });
+      return;
+    }
+
+    let tl: gsap.core.Timeline | undefined;
+
+    const ctx = gsap.context(() => {
+      tl = gsap.timeline({
+        defaults: { ease: EASE },
+        scrollTrigger: { trigger: el, start: "top 82%", once: true },
+      });
+
+      tl.fromTo(
+        bars,
+        { scaleY: 0 },
+        { scaleY: 1, duration: DUR.base, stagger: 0.045, transformOrigin: "50% 100%" },
+      );
+
+      if (line) {
+        tl.fromTo(
+          line,
+          { scaleY: 0, opacity: 0 },
+          { scaleY: 1, opacity: 1, duration: DUR.base, transformOrigin: "50% 0%" },
+          "-=0.28",
+        );
+        tl.from(".dist-threshold-label", { opacity: 0, x: -6, duration: DUR.fast }, "-=0.2");
+      }
+
+      // The bars past the line lose their fill last, which is the point being
+      // made: everything to the right of it earned nothing.
+      if (breaches.length > 0) {
+        tl.fromTo(
+          breaches,
+          { opacity: 1 },
+          { opacity: 0.42, duration: DUR.fast, stagger: 0.05 },
+          "-=0.1",
+        );
+      }
+    }, root);
+
+    ScrollTrigger.refresh();
+
+    return () => {
+      // The trigger is disposable; the styles it produced are not. Reverting
+      // would leave a permanently collapsed chart, since this plays only once.
+      tl?.scrollTrigger?.kill(false);
+      ctx.kill(false);
+    };
+    // Deliberately a stable boolean: `stats.total` changes on every poll, and
+    // depending on it would tear this down and rebuild it every 1.5 seconds.
+  }, [stats.total > 0]);
 
   if (stats.total === 0) {
     return (

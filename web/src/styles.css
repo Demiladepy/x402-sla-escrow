@@ -110,9 +110,9 @@ a:hover {
 }
 
 /* ── Ambient background ──────────────────────────────────────────────────
-   Two very slow drifting fields of light. Transform and opacity only, so
-   this never costs layout. It sits behind everything and is the only thing
-   on the page allowed to move on its own. */
+   Two fields of light driven from gsap.ticker (see Atmosphere.tsx).
+   Transform only, so this never costs layout. It sits behind everything
+   and is the only thing on the page allowed to move on its own. */
 
 .ambient {
   position: fixed;
@@ -122,49 +122,27 @@ a:hover {
   pointer-events: none;
 }
 
-.ambient::before,
-.ambient::after {
-  content: "";
+.ambient-blob {
   position: absolute;
   border-radius: 50%;
   filter: blur(90px);
   will-change: transform;
 }
 
-.ambient::before {
+.ambient-blob.a {
   width: 62vw;
   height: 62vw;
   top: -22vw;
   left: -12vw;
   background: radial-gradient(circle, oklch(0.5 0.09 110 / 0.28), transparent 68%);
-  animation: drift-a 34s var(--ease-out-quint) infinite alternate;
 }
 
-.ambient::after {
+.ambient-blob.b {
   width: 48vw;
   height: 48vw;
   top: 34vh;
   right: -16vw;
   background: radial-gradient(circle, oklch(0.42 0.06 150 / 0.22), transparent 70%);
-  animation: drift-b 44s var(--ease-out-quint) infinite alternate;
-}
-
-@keyframes drift-a {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(6vw, 8vh, 0) scale(1.14);
-  }
-}
-
-@keyframes drift-b {
-  from {
-    transform: translate3d(0, 0, 0) scale(1.08);
-  }
-  to {
-    transform: translate3d(-7vw, -6vh, 0) scale(1);
-  }
 }
 
 /* A faint ruled field, so the dark has structure instead of being flat. */
@@ -173,6 +151,7 @@ a:hover {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  will-change: transform;
   background-image:
     linear-gradient(to right, oklch(0.3 0.014 110 / 0.35) 1px, transparent 1px),
     linear-gradient(to bottom, oklch(0.3 0.014 110 / 0.35) 1px, transparent 1px);
@@ -196,18 +175,31 @@ a:hover {
    One orchestrated entrance per section rather than motion scattered
    everywhere. Staggered by an index custom property. */
 
-[data-reveal] {
+/*
+ * Pre-reveal state, gated behind a class JavaScript sets at module load.
+ *
+ * Without the gate, a bundle that fails to load or execute would leave the
+ * whole page permanently invisible. GSAP animates out of these values; nothing
+ * here transitions, so CSS and GSAP never drive the same property.
+ */
+.js-motion [data-reveal],
+.js-motion [data-hero] {
   opacity: 0;
   transform: translate3d(0, 18px, 0);
-  transition:
-    opacity 900ms var(--ease-out-expo),
-    transform 900ms var(--ease-out-expo);
-  transition-delay: calc(var(--i, 0) * 90ms);
+  will-change: opacity, transform;
 }
 
-[data-reveal].shown {
-  opacity: 1;
-  transform: none;
+.js-motion [data-hero-heading] {
+  opacity: 0;
+}
+
+/* SplitText's mask wrappers; the line rides out from behind its own measure. */
+.hero-line {
+  will-change: transform;
+}
+
+.num-live {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Masthead ─────────────────────────────────────────────────────────── */
@@ -433,11 +425,8 @@ a:hover {
 }
 
 .jump .arrow {
-  transition: transform 240ms var(--ease-out-quint);
-}
-
-.jump:hover .arrow {
-  transform: translateY(2px);
+  display: inline-block;
+  /* y is owned by gsap.ticker; a CSS transform here would fight it. */
 }
 
 /* ── Section scaffolding ──────────────────────────────────────────────── */
@@ -489,12 +478,30 @@ a:hover {
 /* ── Flow ─────────────────────────────────────────────────────────────── */
 
 .flow {
+  position: relative;
   margin-top: var(--space-2xl);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 1px;
   background: var(--line-soft);
   border: 1px solid var(--line-soft);
+}
+
+/*
+ * Drawn across the top edge as the section scrolls, so the sequence of steps
+ * has a direction. Positioned out of the grid rather than given a cell, and
+ * inert to pointers — it is punctuation, not a control.
+ */
+.flow-rule {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  transform-origin: 0 50%;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .step {

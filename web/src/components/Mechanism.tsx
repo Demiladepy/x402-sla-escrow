@@ -1,3 +1,6 @@
+import { useLayoutEffect, useRef } from "react";
+import { gsap, reducedMotion } from "../lib/motion";
+
 const STEPS = [
   {
     n: "01",
@@ -28,6 +31,41 @@ const STEPS = [
 ];
 
 export function Mechanism() {
+  const flow = useRef<HTMLDivElement>(null);
+
+  /**
+   * A rule that draws through the steps as the section is scrolled.
+   *
+   * Scrubbed rather than played: the protocol is a sequence, and tying its
+   * progress to the reader's own position is the one place scroll-linked motion
+   * says something the static layout cannot. It draws only — nothing is pinned
+   * and no scrolling is hijacked.
+   */
+  useLayoutEffect(() => {
+    const el = flow.current;
+    if (!el || reducedMotion()) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".flow-rule",
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          ease: "none",
+          transformOrigin: "0% 50%",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 78%",
+            end: "bottom 62%",
+            scrub: 0.6,
+          },
+        },
+      );
+    }, flow);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <section className="band" id="mechanism">
       <div className="wrap">
@@ -49,7 +87,8 @@ export function Mechanism() {
           </div>
         </div>
 
-        <div className="flow">
+        <div className="flow" ref={flow}>
+          <span className="flow-rule" aria-hidden="true" />
           {STEPS.map((s, i) => (
             <article
               key={s.n}

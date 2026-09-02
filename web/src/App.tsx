@@ -1,18 +1,35 @@
+import { Atmosphere } from "./components/Atmosphere";
 import { Dashboard } from "./components/Dashboard";
 import { Enforcement } from "./components/Enforcement";
 import { Hero } from "./components/Hero";
 import { Mechanism } from "./components/Mechanism";
+import { scrollToId } from "./lib/motion";
 import { useLedger } from "./lib/useLedger";
 import { useReveal } from "./lib/useReveal";
 
+function InPage({ href, children }: { href: `#${string}`; children: string }) {
+  return (
+    <a
+      href={href}
+      onClick={(event) => {
+        event.preventDefault();
+        scrollToId(href);
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
 export default function App() {
   const { rows, state, system, error, fresh, settled } = useLedger();
-  useReveal();
+  // Re-bind when live sections appear: SystemPanel and the ledger are not in
+  // the first paint, and a one-shot query would leave them permanently hidden.
+  useReveal([settled, rows.length > 0, Boolean(system)]);
 
   return (
     <>
-      <div className="ambient" aria-hidden="true" />
-      <div className="grid-field" aria-hidden="true" />
+      <Atmosphere />
 
       <div className="page">
         <header className="masthead">
@@ -21,9 +38,9 @@ export default function App() {
               SLA-escrowed <span>x402</span>
             </div>
             <nav>
-              <a href="#mechanism">Mechanism</a>
-              <a href="#enforcement">Trust boundary</a>
-              <a href="#ledger">Live ledger</a>
+              <InPage href="#mechanism">Mechanism</InPage>
+              <InPage href="#enforcement">Trust boundary</InPage>
+              <InPage href="#ledger">Live ledger</InPage>
             </nav>
             <span className="live">
               <span className={`dot${fresh ? "" : settled ? " stale" : " waiting"}`} />

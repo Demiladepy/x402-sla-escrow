@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { POLL_MS } from "../lib/useLedger";
 import { short, units } from "../lib/format";
+import { useRowEnter } from "../lib/useRowEnter";
 import type { LedgerRow, State, System } from "../lib/types";
 import { Distribution } from "./Distribution";
+import { Num } from "./Num";
 import { SystemPanel } from "./SystemPanel";
 
 /** The ledger grows without bound; the page should not. */
@@ -28,6 +30,8 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
   const charged = state ? BigInt(state.deposited) - BigInt(state.buyerEscrowBalance) : 0n;
   const wouldHaveCost = state ? BigInt(state.sla.price) * BigInt(ordered.length) : 0n;
   const avoided = wouldHaveCost - charged;
+  const visible = ordered.slice(0, VISIBLE_ROWS);
+  const tbody = useRowEnter(visible);
 
   return (
     <section className="band" id="ledger">
@@ -92,7 +96,9 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
         <div className="stats" data-reveal>
           <div className="stat">
             <h3>Calls served</h3>
-            <div className="value">{ordered.length}</div>
+            <div className="value">
+              <Num value={ordered.length} />
+            </div>
             <p className="note">
               {paid} met the SLA, {breached} breached
             </p>
@@ -169,15 +175,15 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
                   <th>Settlement</th>
                 </tr>
               </thead>
-              <tbody>
-                {ordered.slice(0, VISIBLE_ROWS).map((r) => {
+              <tbody ref={tbody}>
+                {visible.map((r) => {
                   const overLatency = r.latencyMs > budget;
                   const badStatus = r.statusCode !== expectedStatus;
                   const ok = r.acked;
                   const reason = overLatency ? "latency" : badStatus ? `HTTP ${r.statusCode}` : "—";
 
                   return (
-                    <tr key={r.requestId}>
+                    <tr key={r.requestId} data-rid={r.requestId}>
                       <td className="hash">{short(r.requestId, 4)}</td>
                       <td>{r.meta?.pair ?? "—"}</td>
                       <td>
