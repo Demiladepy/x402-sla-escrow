@@ -1,0 +1,21 @@
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+contracts/foundry.lock
+
+# Node
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+
+# Secrets — never commit a key
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+*.log
