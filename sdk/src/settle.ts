@@ -1,5 +1,6 @@
 import type { Account, Address, Hex, PublicClient, WalletClient } from "viem";
 import { SLA_ESCROW_ABI } from "./abi.js";
+import { type AttributionCheck, checkTxAttribution, resolveDataSuffix } from "./attribution.js";
 import type { PendingSettlement, SettlementStore } from "./seller.js";
 
 export interface SettlerConfig {
@@ -11,18 +12,24 @@ export interface SettlerConfig {
   /** Max calls per settlement transaction. */
   batchSize?: number;
   /**
-   * Celo attribution tag, appended to calldata as an ERC-8021 data suffix.
+   * Attribution codes to encode into every settlement's calldata, in order —
+   * typically your own project code followed by the tag an event assigned you.
    *
-   * This MUST be present on the very first transaction. The tag lives in the
-   * calldata, so it cannot be added to a transaction after it is sent and there
-   * is no backfill — anything settled without it is permanently uncounted for
-   * the hackathon leaderboards.
-   *
-   * Produce it with Celo's helper rather than hand-rolling the encoding, e.g.
-   * `toDataSuffix(['your_own_code', 'celo_yourAssignedTag'])`, and verify the
-   * first settlement with `verifyTx` before letting the agent run unattended.
+   * Preferred over `dataSuffix`: the encoding is done by Celo's own helper, and
+   * on Celo mainnet an empty list is a hard error rather than a silent omission,
+   * because calldata cannot be amended after a send and there is no backfill.
+   */
+  attributionCodes?: readonly string[];
+  /**
+   * Pre-encoded ERC-8021 suffix, for callers who already built one.
+   * Ignored when `attributionCodes` is supplied.
    */
   dataSuffix?: Hex;
+  /**
+   * Pay gas in an ERC-20 instead of CELO (Celo fee abstraction). Must be the
+   * token's *adapter* address for tokens that are not 18 decimals.
+   */
+  feeCurrency?: Address;
 }
 
 export interface SettlementResult {
@@ -41,6 +48,15 @@ export interface SettlementResult {
  */
 export function createSettler(cfg: SettlerConfig) {
   const batchSize = cfg.batchSize ?? 25;
+
+  // Resolved once, at construction, so a missing mainnet tag fails before the
+  // settler is wired into anything rather than on the first settlement.
+  const codes = cfg.attributionCodes?.filter((c) => c.trim().length > 0) ?? [];
+  const chainId = cfg.wallet.chain?.id ?? 0;
+  const dataSuffix =
+    codes.length > 0
+      ? resolveDataSuffix({ chainId, codes })
+      : (cfg.dataSuffix ?? resolveDataSuffix({ chainId, codes: [] }));
 
   async function settleOnce(): Promise<SettlementResult | undefined> {
     const ready = cfg.store.readyForFastPath().slice(0, batchSize);
@@ -65,7 +81,8 @@ export function createSettler(cfg: SettlerConfig) {
       account: cfg.account,
       chain: cfg.wallet.chain,
       // Attribution rides on every settlement we send.
-      ...(cfg.dataSuffix ? { dataSuffix: cfg.dataSuffix } : {}),
+      ...(dataSuffix ? { dataSuffix } : {}),
+      ...(cfg.feeCurrency ? { feeCurrency: cfg.feeCurrency } : {}),
     } as const;
 
     if (batch.length === 1) {
@@ -104,20 +121,19 @@ export function createSettler(cfg: SettlerConfig) {
   }
 
   /**
-   * Confirms the attribution tag actually landed in a settlement's calldata.
-   * Run this against your first transaction — checking once, early, is the
+   * Decodes the attribution actually recorded on a settlement.
+   *
+   * Run this against your first transaction. Checking once, early, is the
    * difference between a wiring mistake costing one transaction and costing the
    * whole event.
    */
-  async function verifyAttribution(txHash: Hex): Promise<{ present: boolean; calldata: Hex }> {
-    const tx = await cfg.publicClient.getTransaction({ hash: txHash });
-    const calldata = tx.input;
-    const suffix = cfg.dataSuffix;
-    return {
-      present: Boolean(suffix) && calldata.toLowerCase().endsWith(suffix!.slice(2).toLowerCase()),
-      calldata,
-    };
+  function verifyAttribution(txHash: Hex): Promise<AttributionCheck> {
+    return checkTxAttribution({
+      client: cfg.publicClient,
+      hash: txHash,
+      expect: codes,
+    });
   }
 
-  return { settleOnce, start, verifyAttribution };
+  return { settleOnce, start, verifyAttribution, dataSuffix, attributionCodes: codes };
 }

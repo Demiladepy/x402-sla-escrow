@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { formatUnits, parseUnits, type Address, type Hex } from "viem";
 import {
   SLA_ESCROW_ABI,
+  attributionCodesFromEnv,
   createBuyerClient,
   createSettler,
   type SlaResponse,
@@ -210,8 +211,8 @@ async function main() {
     account: seller,
     escrow: escrow.address,
     store,
-    // In production this carries your Celo attribution tag. See settle.ts.
-    dataSuffix: undefined,
+    attributionCodes: attributionCodesFromEnv(),
+    feeCurrency: process.env.FEE_CURRENCY as Address | undefined,
   });
 
   const settlement = await settler.settleOnce();
@@ -220,6 +221,16 @@ async function main() {
     console.log(`  settled ${settlement.count} of ${results.length} calls in one transaction`);
     console.log(`  tx      ${settlement.txHash}`);
     console.log(`  gross   ${money(settlement.grossAmount)}`);
+
+    // Read back what an indexer would see, rather than trusting what we sent.
+    if (settler.attributionCodes.length > 0) {
+      const attr = await settler.verifyAttribution(settlement.txHash);
+      console.log(
+        `  tag     ${attr.ok ? `verified on-chain — ${attr.codes.join(", ")}` : `MISSING (${attr.missing.join(", ")})`}`,
+      );
+    } else {
+      console.log("  tag     none set — fine on anvil, refused on Celo mainnet");
+    }
   } else {
     console.log("  nothing to settle");
   }

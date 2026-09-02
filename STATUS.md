@@ -10,17 +10,33 @@ verified, and what is still blocked. Updated as things land.
 | `contracts/src/SLAEscrow.sol` | Complete. Deposit-once buyers, off-chain signed `PaymentAuth`, seller-signed `ServiceReceipt`, on-chain status + latency enforcement, fast path (`redeemWithAck`) and unilateral path (`redeem`) with bond exposure, bonded/challengeable schema correctness. |
 | `contracts/test/SLAEscrow.t.sol` | 30 tests passing: latency fuzzing, forged-signature and replay cases, challenge game both directions, bond invariants, solvency check. |
 | `contracts/script/Deploy.s.sol` | `Deploy` reads `TOKEN` from env (no hardcoded stablecoin address). `DeployLocal` is anvil-only and deploys `MockERC20`. |
-| `sdk/` | Buyer client (`fetch` that pays), seller middleware, batching settler with ERC-8021 `dataSuffix` support and `verifyAttribution()`. |
+| `sdk/` | Buyer client (`fetch` that pays), seller middleware, batching settler with ERC-8021 attribution and fee abstraction. |
+| `sdk/src/attribution.ts` | ERC-8021 encoding via `@celo/attribution-tags`, a mainnet guard, and on-chain verification that decodes rather than string-matches. 18 tests. |
 | `web/` + `demo/` | Live dashboard over a running system. `demo/src/run.ts` is the scripted three-call walkthrough; `demo/src/serve.ts` is the long-running traffic generator. |
 
 ## Verified
 
-- Three commits on `main`: `23d6801`, `94c9923`, `0baf857`.
-- Pushed to `https://github.com/Demiladepy/x402-escrow` — returns HTTP 200, so it
-  satisfies the "public repo must resolve at judging" rule.
+- Pushed to `https://github.com/Demiladepy/x402-sla-escrow`, public and current
+  with `origin/main`, so it satisfies the "public repo must resolve at judging"
+  rule. `agent.json` returns HTTP 200 from `raw.githubusercontent.com`, which is
+  the precondition the register script checks.
+- 48 tests green: 30 Solidity (`npm run test:contracts`) and 18 TypeScript
+  (`npm run test:sdk`). `npm test` runs both.
 - Local demo run: 82 calls, 22 deliberately degraded. Buyer charged 0.0580
   instead of 0.0820. The difference never left the buyer's balance. No refund,
   no dispute. Buyer transactions since deposit: 0.
+- Scripted demo re-run after the attribution rewiring: 3 calls, 1 paid, buyer
+  nonce unchanged at 4 since the deposit.
+
+### Agent wallet funding, read from chain
+
+`npm run agent:balance` checks both networks and names the chain id, because
+"I sent it" and "it arrived on the chain that counts" are different claims.
+
+| Network | Holds |
+|---|---|
+| Celo mainnet (42220) | 0.4 CELO — enough for the ERC-8004 mint many times over |
+| Celo Sepolia (11142220) | 1 CELO, 20 USDC — rehearsal only, counts for nothing |
 
 ## Fixed after the first end-to-end run
 
@@ -137,6 +153,24 @@ Two things worth noting for later:
   via constructor, and the demo already quotes CUSD/NGN, CUSD/KES, CUSD/GHS — so
   deploying against cNGN is a configuration choice, not a rewrite.
 
+## Dashboard rebuild
+
+`web/` is now a single page that opens with the argument and scrolls into the
+live ledger, rather than a bare dashboard. Design context and the reasoning
+behind the palette and type choices live in `.impeccable.md`.
+
+Deliberately *not* a copy of the reference site that prompted it: the reference
+is a marketing homepage, this has to be live operational proof, and a
+recognisable clone would undercut the innovation the panel is judging. What
+carried over is the atmosphere — ambient drifting light behind a still
+foreground, oversized confident type, one orchestrated reveal per section.
+
+Palette is near-black tinted toward Celo's yellow hue with Celo yellow as a
+rare accent, spent on the number being proven. Type is Archivo at expanded
+widths for display against Schibsted Grotesk for body, with tabular figures in
+the ledger so columns compare down a row. No new dependencies: motion is CSS,
+reveals use one `IntersectionObserver`.
+
 ## Registration groundwork (done)
 
 Decisions taken: primary track `judges-favorite`, buy closed beta opted in,
@@ -154,20 +188,50 @@ The register script checks, in order, that `AGENT_URI` resolves, that it
 describes an `Agent`, and that the wallet holds CELO — all before it sends
 anything. Confirmed it currently stops at the 404 without touching the chain.
 
+## Attribution, made hard to get wrong
+
+The tag is the one mistake with no remedy: it travels in calldata, so it cannot
+be attached after a send and there is no backfill. Three changes make omitting
+or corrupting it loud rather than silent.
+
+**It fails at construction, not at send.** `createSettler` resolves attribution
+when it is built. On chain 42220 with no codes it throws, so the failure lands
+before the settler is handed to anything that could spend with it. Local chains
+return `undefined` and stay quiet, so the demo needs no special-casing.
+
+**Encoding is Celo's, not ours.** `@celo/attribution-tags` does the ERC-8021
+encoding. Its code format is `/^[a-z0-9_]{1,32}$/`, which means a Celo Builders
+*claim* code — uppercase and dashed — is rejected outright instead of being
+encoded into something no indexer will credit. That specific confusion is what
+the test `rejects codes the on-chain format cannot represent` pins down.
+
+**Verification decodes.** `verifyAttribution` reads the transaction back and
+decodes the suffix, answering "what will an indexer see" rather than "does the
+calldata end in the bytes we meant to send". The earlier `endsWith` check would
+pass on calldata that merely happened to end in those bytes; there is now a test
+asserting that case fails.
+
+Codes come from the environment in a fixed order — `ATTRIBUTION_CODE` first,
+then `CELO_ATTRIBUTION_TAG` — and both demos report on the first settlement
+whether the tag was actually found on-chain.
+
+`feeCurrency` is also plumbed through the settler now, so the fee-abstraction
+angle the `judges-favorite` track calls out is one environment variable rather
+than a code change.
+
 ## Blocked, and on what
 
 | Blocker | Needs |
 |---|---|
-| Registration | Google sign-in completed by a human; the claim code is pasted back |
-| `erc8004Url` | An ERC-8004 Agent ID registered on Celo mainnet |
-| `agentWalletAddress` | A funded Celo mainnet wallet |
+| ERC-8004 mint | Go-ahead to spend a fraction of the 0.4 mainnet CELO. Script and its preconditions are green. |
+| Registration | The mint's `erc8004Url`, then a save |
+| `CELO_ATTRIBUTION_TAG` | Returned by that save. Plumbing is done and tested — only the value is missing. |
 | Mainnet deploy | `TOKEN` chosen, funded deployer, `ARBITER` decided |
-| First tagged settlement | `dataSuffix` wired *before* it is sent, then `verifyAttribution(txHash)` |
 | Independent users | Counterparties with Celo activity from before 28 Aug, not funded by us |
 
 ## Not done deliberately
 
 - No mainnet deploy, so nothing is pointed at a real stablecoin by accident.
-- `createSettler` is called without `dataSuffix` in `demo/src/serve.ts` and
-  `demo/src/run.ts`. Harmless locally, since local settlements are not counted,
-  but it must be set before the first mainnet settlement.
+- No mainnet transaction of any kind yet. The wallet is funded and the register
+  script's preconditions now pass, so the only thing between here and a mint is
+  an explicit instruction to spend.

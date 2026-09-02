@@ -1,6 +1,11 @@
 import { createServer, type Server } from "node:http";
 import { formatUnits, parseUnits, type Address, type Hex } from "viem";
-import { SLA_ESCROW_ABI, createBuyerClient, createSettler } from "@x402sla/sdk";
+import {
+  SLA_ESCROW_ABI,
+  attributionCodesFromEnv,
+  createBuyerClient,
+  createSettler,
+} from "@x402sla/sdk";
 import { buyer, deploy, publicClient, seller, walletFor } from "./chain.js";
 import { SCHEMA_HASH, createSellerApp } from "./seller-app.js";
 
@@ -204,10 +209,27 @@ async function main() {
     account: seller,
     escrow: escrow.address,
     store,
+    attributionCodes: attributionCodesFromEnv(),
+    feeCurrency: process.env.FEE_CURRENCY as Address | undefined,
   });
-  settler.start(SETTLE_INTERVAL_MS, (r) =>
-    console.log(`settled ${r.count} call(s) for ${formatUnits(r.grossAmount, 18)} cUSD  ${r.txHash}`),
-  );
+
+  // Verified once, on the first settlement only: if the tag is wrong we want to
+  // know at call one, not after a night of unattributed traffic.
+  let attributionChecked = settler.attributionCodes.length === 0;
+
+  settler.start(SETTLE_INTERVAL_MS, async (r) => {
+    console.log(`settled ${r.count} call(s) for ${formatUnits(r.grossAmount, 18)} cUSD  ${r.txHash}`);
+
+    if (!attributionChecked) {
+      attributionChecked = true;
+      const attr = await settler.verifyAttribution(r.txHash);
+      console.log(
+        attr.ok
+          ? `attribution verified on-chain: ${attr.codes.join(", ")}`
+          : `ATTRIBUTION MISSING from ${r.txHash} — expected ${attr.missing.join(", ")}`,
+      );
+    }
+  });
 
   // A buyer agent that keeps working. Roughly one call in four hits a degraded
   // endpoint, which is what makes the ledger worth looking at.

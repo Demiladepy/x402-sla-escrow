@@ -9,9 +9,13 @@
   ],
   "scripts": {
     "build": "npm run build --workspace sdk",
+    "test": "npm run test:contracts && npm run test:sdk",
     "test:contracts": "forge test --root contracts",
+    "test:sdk": "npm run test --workspace sdk",
+    "typecheck": "npm run typecheck --workspace sdk",
     "demo": "npm run demo --workspace demo",
     "agent:wallet": "tsx scripts/new-agent-wallet.ts",
+    "agent:balance": "tsx --env-file=.env scripts/check-funding.ts",
     "agent:register": "tsx --env-file=.env scripts/register-8004.ts"
   },
   "engines": {
