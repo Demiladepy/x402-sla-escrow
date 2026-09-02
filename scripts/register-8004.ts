@@ -5,12 +5,20 @@
  * the two URL forms the hackathon accepts. Requires AGENT_PRIVATE_KEY in .env
  * and a little CELO in that account for gas.
  *
- *   npx tsx scripts/register-8004.ts
+ *   npm run agent:register -- --dry-run   # every check and the simulation, no send
+ *   npm run agent:register                # sends
  *
  * Checks that AGENT_URI actually resolves before spending anything, because an
  * identity pointing at a 404 is worse than no identity.
  */
-import { createPublicClient, createWalletClient, decodeEventLog, http, type Hex } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  decodeEventLog,
+  formatEther,
+  http,
+  type Hex,
+} from "viem";
 import { celo } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -42,6 +50,7 @@ function required(name: string): string {
 }
 
 async function main() {
+  const dryRun = process.argv.includes("--dry-run");
   const privateKey = required("AGENT_PRIVATE_KEY") as Hex;
   const agentUri = required("AGENT_URI");
   const rpcUrl = process.env.CELO_RPC_URL ?? "https://forno.celo.org";
@@ -71,7 +80,7 @@ async function main() {
   const feeCurrency = process.env.FEE_CURRENCY as Hex | undefined;
 
   const balance = await publicClient.getBalance({ address: account.address });
-  console.log(`balance:   ${balance} wei CELO`);
+  console.log(`balance:   ${formatEther(balance)} CELO`);
   if (balance === 0n && !feeCurrency) {
     throw new Error(
       `${account.address} holds no CELO. Either fund it, or set FEE_CURRENCY to ` +
@@ -88,6 +97,29 @@ async function main() {
     account,
   });
   console.log(`simulated agent id: ${simulatedId}`);
+
+  // Priced before sending so the cost is a stated number rather than a surprise.
+  const [gas, fees] = await Promise.all([
+    publicClient.estimateContractGas({
+      address: IDENTITY_REGISTRY,
+      abi: REGISTRY_ABI,
+      functionName: "register",
+      args: [agentUri],
+      account,
+    }),
+    publicClient.estimateFeesPerGas(),
+  ]);
+  const cost = gas * (fees.maxFeePerGas ?? 0n);
+  console.log(`estimated cost: ${formatEther(cost)} CELO (${gas} gas)`);
+  if (cost > balance && !feeCurrency) {
+    throw new Error(`estimated cost exceeds the ${formatEther(balance)} CELO available.`);
+  }
+
+  if (dryRun) {
+    console.log("\ndry run: every precondition passed and the mint simulates cleanly.");
+    console.log("Nothing was sent. Re-run without --dry-run to register.");
+    return;
+  }
 
   const hash = await wallet.writeContract({
     address: IDENTITY_REGISTRY,
