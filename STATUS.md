@@ -219,19 +219,38 @@ whether the tag was actually found on-chain.
 angle the `judges-favorite` track calls out is one environment variable rather
 than a code change.
 
+## Registered
+
+Both mainnet steps are done and the attribution loop is closed.
+
+| Item | Value |
+|---|---|
+| ERC-8004 Agent ID | **9807**, minted on Celo mainnet |
+| Mint transaction | `0x6074cf866f7cf4fd53753d94d0ef6518726055c5208da0cf4f594829a1fb19ce` |
+| Cost | 0.0407 CELO actual against a 0.0494 estimate; 0.3593 CELO left |
+| `erc8004Url` | `https://8004scan.io/agents/celo/9807` — HTTP 200, as is the Celoscan form |
+| Submission | `SLA-escrowed x402`, status `draft`, primary track `judges-favorite` |
+| **`attributionTag`** | **`celo_5ffb6e9c75fb`** — locked to `Demiladepy/x402-sla-escrow` |
+
+The repo URL was checked for a rename redirect before saving, because the tag
+derives from the slug and binds to whatever was saved first. It is canonical, so
+the tag is not dependent on GitHub continuing to forward an old name.
+
+Verified end to end rather than assumed: a settlement was sent, read back, and
+decoded to `x402_sla, celo_5ffb6e9c75fb`. Same code path mainnet will take.
+
+`npm run hack:status` reads the submission back, including the tag on file.
+
 ## Blocked, and on what
 
 | Blocker | Needs |
 |---|---|
-| ERC-8004 mint | Go-ahead to spend a fraction of the 0.4 mainnet CELO. Script and its preconditions are green. |
-| Registration | The mint's `erc8004Url`, then a save |
-| `CELO_ATTRIBUTION_TAG` | Returned by that save. Plumbing is done and tested — only the value is missing. |
 | Mainnet deploy | `TOKEN` chosen, funded deployer, `ARBITER` decided |
-| Independent users | Counterparties with Celo activity from before 28 Aug, not funded by us |
+| Independent users | Counterparties with Celo activity from before 28 Aug, not funded by us. Still the biggest judge-facing gap: the mechanism is built, the distribution channel is not. |
+| Publishing | Submission-stage fields, chiefly `socialLink` (an X post tagging @CeloDevs and @Celo) and `ownContracts` once anything is deployed |
 
 ## Not done deliberately
 
 - No mainnet deploy, so nothing is pointed at a real stablecoin by accident.
-- No mainnet transaction of any kind yet. The wallet is funded and the register
-  script's preconditions now pass, so the only thing between here and a mint is
-  an explicit instruction to spend.
+- Submission is a draft, not published. Drafts appear on the leaderboard flagged
+  ineligible; publishing needs the X post and is a deliberate, later step.

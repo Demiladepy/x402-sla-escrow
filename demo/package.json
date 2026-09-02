@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "demo": "tsx src/run.ts",
-    "serve": "tsx src/serve.ts"
+    "demo": "tsx --env-file-if-exists=../.env src/run.ts",
+    "serve": "tsx --env-file-if-exists=../.env src/serve.ts"
   },
   "dependencies": {
     "@x402sla/sdk": "*",
