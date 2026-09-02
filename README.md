@@ -85,6 +85,18 @@ The demo spins up a local chain, deploys the escrow, stands up a seller serving 
 
 The buyer's transaction nonce is shown before and after. It does not move.
 
+### Live dashboard
+
+For a running system with continuous traffic and a web dashboard:
+
+```bash
+anvil                              # terminal 1
+npm run serve --workspace demo     # terminal 2 — seller + a buyer agent that keeps calling
+npm run dev --workspace web        # terminal 3 — dashboard on :5173
+```
+
+Roughly one call in four hits a degraded endpoint, so the ledger shows real breaches alongside real settlements. The stat to watch is **buyer transactions since deposit**, which stays at zero no matter how many calls are made.
+
 ## Integration
 
 **Seller** — wrap the route:

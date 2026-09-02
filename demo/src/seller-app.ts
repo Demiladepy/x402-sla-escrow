@@ -68,6 +68,10 @@ export function createSellerApp(cfg: SellerAppConfig): {
       expectedStatus: 200,
       schemaHash: SCHEMA_HASH,
       store,
+      describe: (req) => {
+        const q = (req.query ?? {}) as Record<string, string>;
+        return { pair: (q.pair ?? "CUSD/NGN").toUpperCase(), mode: q.mode ?? "normal" };
+      },
     },
     async (req) => {
       const query = (req.query ?? {}) as Record<string, string>;
@@ -106,6 +110,8 @@ export function createSellerApp(cfg: SellerAppConfig): {
         latencyMs: Number(s.receipt.servedAtMs - s.auth.requestedAtMs),
         acked: Boolean(s.ackSig),
         settledTxHash: s.settledTxHash ?? null,
+        servedAt: s.servedAt,
+        meta: s.meta ?? null,
       })),
     );
   });

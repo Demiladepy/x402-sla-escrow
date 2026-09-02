@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "demo": "tsx src/run.ts"
+    "demo": "tsx src/run.ts",
+    "serve": "tsx src/serve.ts"
   },
   "dependencies": {
     "@x402sla/sdk": "*",

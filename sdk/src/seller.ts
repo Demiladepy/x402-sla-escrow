@@ -25,6 +25,8 @@ export interface PendingSettlement {
   ackSig?: Hex;
   servedAt: number;
   settledTxHash?: Hex;
+  /** Whatever `describe` returned for the request. Never signed over. */
+  meta?: unknown;
 }
 
 export interface SettlementStore {
@@ -73,6 +75,12 @@ export interface SellerConfig {
   expectedStatus?: number;
   schemaHash: Hex;
   store: SettlementStore;
+  /**
+   * Optional label attached to the stored settlement for dashboards and logs.
+   * Purely local bookkeeping — it is not part of the receipt and neither side
+   * signs it.
+   */
+  describe?: (req: MinimalReq) => unknown;
 }
 
 type MinimalReq = {
@@ -198,6 +206,7 @@ export function slaEndpoint(cfg: SellerConfig, handler: Handler) {
       receipt,
       receiptSig,
       servedAt: Date.now(),
+      meta: cfg.describe?.(req),
     });
 
     res.setHeader(RECEIPT_HEADER, encodeHeader({ receipt, signature: receiptSig }));
