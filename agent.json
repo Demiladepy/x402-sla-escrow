@@ -1,0 +1,13 @@
+{
+  "type": "Agent",
+  "name": "SLA-escrowed x402",
+  "description": "A seller agent that serves paid HTTP endpoints under an on-chain SLA, and a buyer agent that pays for them per call. Buyers deposit once and sign off-chain payment authorizations; sellers can only be paid by presenting a signed service receipt, and the escrow re-checks HTTP status and latency itself, reverting on a breach. A breached call is never paid for, so there is nothing to refund and no dispute to open.",
+  "endpoints": [
+    {
+      "type": "wallet",
+      "address": "0x922184A4702f0DF95fB86C3879BC3eD935b75721",
+      "chainId": 42220
+    }
+  ],
+  "supportedTrust": ["reputation"]
+}

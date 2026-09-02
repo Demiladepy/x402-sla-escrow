@@ -10,7 +10,9 @@
   "scripts": {
     "build": "npm run build --workspace sdk",
     "test:contracts": "forge test --root contracts",
-    "demo": "npm run demo --workspace demo"
+    "demo": "npm run demo --workspace demo",
+    "agent:wallet": "tsx scripts/new-agent-wallet.ts",
+    "agent:register": "tsx --env-file=.env scripts/register-8004.ts"
   },
   "engines": {
     "node": ">=20"

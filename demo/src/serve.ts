@@ -1,3 +1,4 @@
+import { createServer, type Server } from "node:http";
 import { formatUnits, parseUnits, type Address, type Hex } from "viem";
 import { SLA_ESCROW_ABI, createBuyerClient, createSettler } from "@x402sla/sdk";
 import { buyer, deploy, publicClient, seller, walletFor } from "./chain.js";
@@ -45,7 +46,32 @@ const ERC20 = [
 
 const PAIRS = ["CUSD/NGN", "CUSD/KES", "CUSD/GHS"];
 
+/**
+ * Claims the port before any on-chain work happens.
+ *
+ * Setup deposits buyer funds and posts the seller's bond, and it used to run
+ * before `app.listen`. A second instance started against the same chain would
+ * therefore spend money and only then discover the port was taken — harmless on
+ * anvil, but a duplicated deposit and bond on a real network.
+ */
+function reservePort(port: number): Promise<Server> {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once("error", (err: NodeJS.ErrnoException) => {
+      reject(
+        err.code === "EADDRINUSE"
+          ? new Error(`port ${port} is already serving. Stop that instance first.`)
+          : err,
+      );
+    });
+    server.once("listening", () => resolve(server));
+    server.listen(port);
+  });
+}
+
 async function main() {
+  const reserved = await reservePort(PORT);
+
   await publicClient.getBlockNumber().catch(() => {
     throw new Error(`no chain at the RPC url. Start one with: anvil`);
   });
@@ -160,6 +186,8 @@ async function main() {
       buyerTxCountAfterSetup: buyerNonceAfterSetup,
     });
   });
+
+  await new Promise<void>((resolve) => reserved.close(() => resolve()));
 
   app.listen(PORT, () => {
     console.log(`seller listening on ${BASE}`);
