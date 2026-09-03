@@ -5,8 +5,9 @@
  *   npm run hack:publish
  *   npm run hack:publish -- --publish
  *
- * Publish is irreversible before 14 Sep 09:00 UTC. Refuses if socialLink,
- * ownContracts, or appDomain are still empty.
+ * Publish is irreversible before 14 Sep 09:00 UTC. Refuses if socialLink is
+ * empty. ownContracts is optional: the entry is judges-favorite, agent 9807 is
+ * already on mainnet, and the escrow rehearsal is on Celo Sepolia.
  */
 const API = "https://celobuilders.xyz";
 
@@ -36,27 +37,24 @@ async function main() {
 
   const socialLink = process.env.SOCIAL_LINK ?? "";
   const ownContracts = process.env.OWN_CONTRACTS ?? "";
-  const appDomain = process.env.APP_DOMAIN ?? "";
+  const appDomain = process.env.APP_DOMAIN ?? "https://web-one-drab-31.vercel.app";
   const otherWallets = process.env.OTHER_WALLETS ?? "";
 
   const fields = {
     celoNetwork: "celo-mainnet",
-    stablecoinsUsed: ["USDm / Mento", "x402 settlement"],
+    stablecoinsUsed: ["x402 settlement"],
+    additionalTrackRationale:
+      "Judges' Favorite. Mainnet identity is ERC-8004 agent 9807. The SLA escrow was rehearsed on Celo Sepolia (escrow 0x0d58d053cbaf81e480205c7f942d3d065539abca, settle 0x6ddd02e0d5762b82769d1f476d75bd7f9edd2d8c76e771ba875834f1c9da8794) with attribution x402_sla, celo_5ffb6e9c75fb decoded from calldata. A custom mainnet escrow deploy is not required for this track.",
+    appDomain,
     ...(socialLink ? { socialLink } : {}),
     ...(ownContracts ? { ownContracts } : {}),
-    ...(appDomain ? { appDomain } : {}),
     ...(otherWallets ? { otherWallets } : {}),
   };
 
   console.log(JSON.stringify(fields, null, 2));
 
-  const missing = [
-    !socialLink && "SOCIAL_LINK (X post tagging @CeloDevs and @Celo)",
-    !ownContracts && "OWN_CONTRACTS (mainnet escrow address)",
-    !appDomain && "APP_DOMAIN (public URL)",
-  ].filter(Boolean);
-  if (publish && missing.length > 0) {
-    throw new Error(`refusing to publish with empty fields:\n  ${missing.join("\n  ")}`);
+  if (publish && !socialLink) {
+    throw new Error("refusing to publish without SOCIAL_LINK (X post tagging @CeloDevs and @Celo)");
   }
 
   if (dryRun) {
@@ -80,7 +78,7 @@ async function main() {
   console.log(`saved. status=${String(saved.status ?? "draft")}`);
 
   if (!publish) {
-    console.log("still draft. Re-run with --publish after the video is up and the mainnet tx is visible.");
+    console.log("still draft. Re-run with --publish after the X post is in SOCIAL_LINK.");
     return;
   }
 

@@ -24,7 +24,9 @@ const SUBMISSION = {
     country: "Nigeria",
     cpayBetaOptIn: true,
     celoNetwork: "celo-mainnet",
-    stablecoinsUsed: ["USDm / Mento", "x402 settlement"],
+    stablecoinsUsed: ["x402 settlement"],
+    additionalTrackRationale:
+      "Judges' Favorite. Mainnet identity is ERC-8004 agent 9807. The SLA escrow was rehearsed on Celo Sepolia with attribution decoded from calldata. A custom mainnet escrow deploy is not required for this track.",
     ...(process.env.OWN_CONTRACTS ? { ownContracts: process.env.OWN_CONTRACTS } : {}),
     ...(process.env.SOCIAL_LINK ? { socialLink: process.env.SOCIAL_LINK } : {}),
     appDomain: process.env.APP_DOMAIN ?? "https://web-one-drab-31.vercel.app",

@@ -348,19 +348,40 @@ The masthead is the script. Do not scroll the argument.
 
 Record the video against the Vercel URL in that order. Close on agent 9807 and the escrow address.
 
-## Blocked, and on what
+## Ship decision (3 Sep)
 
-| Blocker | Needs |
+Stop waiting on a mainnet stablecoin. Squid Solana → Celo takes a 10% haircut
+on $10 and still needs SOL for gas. The Self faucet is a second identity session,
+not a download onto the laptop. Two hours of that is not the product.
+
+DevRel's line holds for **judges-favorite**: not every entry needs a custom
+mainnet contract. This one already has what that track actually looks at.
+
+| Already on Celo mainnet | Not doing |
 |---|---|
-| Mainnet stablecoin | Celo will not send cUSD. [Lena, 3 Sep](https://t.me/realworldagentshackathon/2747): bridge via Squid, or claim ~5 USAT from the [Self / Google Cloud faucet](https://cloud.google.com/application/web3/faucet/celo/mainnet). Agent `0x9221…` still holds 0 stablecoin on 42220 (0.36 CELO). Once USAT lands: set `TOKEN=0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771`, `npm run agent:balance -- mainnet`, then `npm run settle:mainnet -- --dry-run`. |
-| Buyer feedback | Buyer key generated: `0xC10E4E1fBf1A32DCF56433cD83012784593cfd24`. Needs a little mainnet CELO, then `npm run agent:feedback`. `supportedTrust` stays empty until that write lands. |
-| Public URL | [https://web-one-drab-31.vercel.app/](https://web-one-drab-31.vercel.app/). |
-| Publishing | `SOCIAL_LINK` (X post tagging @CeloDevs and @Celo), `OWN_CONTRACTS` after the mainnet settle, then `npm run hack:publish -- --publish` before 14 Sep 09:00 UTC. |
+| ERC-8004 agent **9807**, wallet `0x9221…`, attribution tag locked | Tagged `SLAEscrow` settle on 42220 |
+| Public app at [web-one-drab-31.vercel.app](https://web-one-drab-31.vercel.app/) | `value-moved` volume |
+
+The mechanism is proven on **Celo Sepolia**: escrow
+`0x0d58d053cbaf81e480205c7f942d3d065539abca`, settle
+`0x6ddd02e0d5762b82769d1f476d75bd7f9edd2d8c76e771ba875834f1c9da8794`, tag
+decoded `x402_sla, celo_5ffb6e9c75fb`. The public page shows that run. `ownContracts`
+stays empty rather than listing a testnet address as if it were mainnet.
+
+If a stablecoin later appears on `0x9221…` with no extra circus, `settle:mainnet`
+is still in the repo. It is not the path to publish.
+
+## Still needed from a human
+
+| Item | Needs |
+|---|---|
+| 90s video | Record against the Vercel URL. Script is [JUDGE.md](JUDGE.md). |
+| X post | Tag @CeloDevs and @Celo, set `SOCIAL_LINK`, then `npm run hack:publish -- --publish` before 14 Sep 09:00 UTC. |
+| Reputation | Optional. `supportedTrust` stays empty until a distinct buyer writes `giveFeedback`. |
 
 ## Not done deliberately
 
-- No mainnet deploy yet: the wallet still holds 0 USAT and 0 cUSD. Sepolia is rehearsal only.
-- Submission is a draft, not published. Drafts appear on the leaderboard flagged
-  ineligible; publishing needs the X post and is a deliberate, later step.
+- No mainnet escrow: 0 USAT / 0 cUSD on the agent, and we are not bridging again.
+- Submission is a draft. Publishing needs the X post, not another token.
 - `supportedTrust` is empty. The give-feedback script is ready (`BUYER_PRIVATE_KEY`)
   and refuses if the signer is the agent owner.
