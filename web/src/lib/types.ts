@@ -29,6 +29,9 @@ export interface State {
   sellerEarned: string;
   buyerTxCount: number;
   buyerTxCountAfterSetup: number;
+  /** Token decimals. Sepolia USDC is 6; mainnet cUSD is 18. */
+  decimals?: number;
+  tokenSymbol?: string;
 }
 
 export interface Settlement {

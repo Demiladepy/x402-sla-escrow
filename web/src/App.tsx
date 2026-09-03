@@ -29,7 +29,7 @@ function InPage({ href, children }: { href: `#${string}`; children: string }) {
 }
 
 export default function App() {
-  const { rows, state, system, error, fresh, settled } = useLedger();
+  const { rows, state, system, error, fresh, settled, source } = useLedger();
   const scene = useHashScene();
   // Re-bind when live sections appear: SystemPanel and the ledger are not in
   // the first paint, and a one-shot query would leave them permanently hidden.
@@ -59,14 +59,18 @@ export default function App() {
               <InPage href="#agent">Agent</InPage>
             </nav>
             <span className="live">
-              <span className={`dot${fresh ? "" : settled ? " stale" : " waiting"}`} />
-              {fresh ? "live" : settled ? "offline" : "connecting"}
+              <span
+                className={`dot${
+                  fresh ? "" : source === "recorded" ? " recorded" : settled ? " stale" : " waiting"
+                }`}
+              />
+              {fresh ? "live" : source === "recorded" ? "recorded" : settled ? "offline" : "connecting"}
             </span>
           </div>
         </header>
 
         <main>
-          <Hero state={state} callCount={rows.length} settled={settled} />
+          <Hero state={state} callCount={rows.length} settled={settled} source={source} />
           <Call />
           <Mechanism />
           <Enforcement />
@@ -77,6 +81,7 @@ export default function App() {
             error={error}
             settled={settled}
             scene={scene}
+            source={source}
           />
           <Identity />
         </main>

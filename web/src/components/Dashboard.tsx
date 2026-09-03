@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { POLL_MS } from "../lib/useLedger";
-import { short, units } from "../lib/format";
+import { POLL_MS, type LedgerSource } from "../lib/useLedger";
+import { decimalsOf, explorerTx, short, tokenOf, units } from "../lib/format";
+import { SEPOLIA_SETTLE_TX } from "../lib/recorded";
 import { pickPinnedRow, type Scene } from "../lib/scenes";
 import { useRowEnter } from "../lib/useRowEnter";
 import type { LedgerRow, State, System } from "../lib/types";
@@ -19,14 +20,18 @@ interface Props {
   error: string | null;
   settled: boolean;
   scene: Scene | null;
+  source: LedgerSource | null;
 }
 
-export function Dashboard({ rows, state, system, error, settled, scene }: Props) {
+export function Dashboard({ rows, state, system, error, settled, scene, source }: Props) {
   const ordered = useMemo(() => [...rows].sort((a, b) => b.servedAt - a.servedAt), [rows]);
   const pinned = useMemo(() => pickPinnedRow(ordered, scene), [ordered, scene]);
 
   const budget = state?.sla.maxLatencyMs ?? 800;
   const expectedStatus = state?.sla.expectedStatus ?? 200;
+  const dec = decimalsOf(state);
+  const token = tokenOf(state);
+  const settleUrl = explorerTx(system?.chain.chainId, SEPOLIA_SETTLE_TX);
 
   const paid = ordered.filter((r) => r.acked).length;
   const breached = ordered.length - paid;
@@ -42,21 +47,48 @@ export function Dashboard({ rows, state, system, error, settled, scene }: Props)
       <div className="wrap">
         <div className="band-head">
           <div data-reveal>
-            <span className="index">04 Live</span>
-            <h2>A running system, not a screenshot.</h2>
+            <span className="index">{source === "live" ? "04 Live" : "04 Ledger"}</span>
+            <h2>
+              {source === "live"
+                ? "A running system, not a screenshot."
+                : source === "recorded"
+                  ? "A rehearsal that already ran on Celo Sepolia."
+                  : "Reading the ledger."}
+            </h2>
           </div>
           <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>
             <p>
-              A buyer agent calls the endpoint every few seconds. Roughly one call in four hits a
-              deliberately degraded route, so the ledger below shows real breaches alongside real
-              settlements.
+              {source === "live"
+                ? "A buyer agent calls the endpoint every few seconds. Roughly one call in four hits a deliberately degraded route, so the ledger below shows real breaches alongside real settlements."
+                : source === "recorded"
+                  ? "One paid call settled on-chain. One unpaid breach, never redeemed. Attribution decoded from calldata. A live seller replaces this the moment one is reachable."
+                  : "Waiting for the seller, or for the Sepolia rehearsal if none is running."}
             </p>
           </div>
         </div>
 
         {scene && <ProtocolTrace scene={scene} row={pinned} state={state} system={system} />}
 
-        {error && settled && (
+        {source === "recorded" && (
+          <div className="offline recorded" data-reveal>
+            <p className="offline-head">Read back from chain 11142220, not invented for the page.</p>
+            <p>
+              Healthy call paid 0.001 USDC at 21ms. Breach returned HTTP 500 and was charged 0.
+              Settlement{" "}
+              {settleUrl ? (
+                <a href={settleUrl} rel="noreferrer">
+                  {SEPOLIA_SETTLE_TX.slice(0, 10)}…
+                </a>
+              ) : (
+                <span className="code">{SEPOLIA_SETTLE_TX.slice(0, 10)}…</span>
+              )}{" "}
+              decoded as x402_sla, celo_5ffb6e9c75fb. The same wallet signed both sides of this
+              rehearsal. The calls themselves still cost the buyer no transaction.
+            </p>
+          </div>
+        )}
+
+        {error && settled && source !== "recorded" && (
           <div className="offline" data-reveal>
             <p className="offline-head">Nothing is serving on this port.</p>
             <p>
@@ -79,7 +111,7 @@ export function Dashboard({ rows, state, system, error, settled, scene }: Props)
           </div>
           <div className="term">
             <dt>Price</dt>
-            <dd>{state ? `${units(state.sla.price)} cUSD` : "pending"}</dd>
+            <dd>{state ? `${units(state.sla.price, dec)} ${token}` : "pending"}</dd>
           </div>
           <div className="term">
             <dt>Latency SLA</dt>
@@ -91,7 +123,7 @@ export function Dashboard({ rows, state, system, error, settled, scene }: Props)
           </div>
           <div className="term">
             <dt>Seller bond</dt>
-            <dd>{state ? `${units(state.bond)} cUSD` : "pending"}</dd>
+            <dd>{state ? `${units(state.bond, dec)} ${token}` : "pending"}</dd>
           </div>
           <div className="term">
             <dt>Escrow</dt>
@@ -113,17 +145,17 @@ export function Dashboard({ rows, state, system, error, settled, scene }: Props)
           <div className="stat">
             <h3>Buyer charged</h3>
             <div className="value">
-              {units(charged)}
-              <span className="unit">cUSD</span>
+              {units(charged, dec)}
+              <span className="unit">{token}</span>
             </div>
-            <p className="note">{units(wouldHaveCost)} without SLA enforcement</p>
+            <p className="note">{units(wouldHaveCost, dec)} without SLA enforcement</p>
           </div>
 
           <div className="stat avoided">
             <h3>Never paid out</h3>
             <div className="value">
-              {units(avoided > 0n ? avoided : 0n)}
-              <span className="unit">cUSD</span>
+              {units(avoided > 0n ? avoided : 0n, dec)}
+              <span className="unit">{token}</span>
             </div>
             <p className="note">No refund requested, no dispute opened</p>
           </div>
@@ -131,18 +163,26 @@ export function Dashboard({ rows, state, system, error, settled, scene }: Props)
           <div className="stat">
             <h3>Seller earned</h3>
             <div className="value">
-              {state ? units(state.sellerEarned) : "pending"}
-              <span className="unit">cUSD</span>
+              {state ? units(state.sellerEarned, dec) : "pending"}
+              <span className="unit">{token}</span>
             </div>
             <p className="note">Settled on-chain, in batches</p>
           </div>
 
           <div className="stat">
-            <h3>Buyer txs since deposit</h3>
+            <h3>Buyer txs to pay</h3>
             <div className="value">
-              {state ? state.buyerTxCount - state.buyerTxCountAfterSetup : "pending"}
+              {source === "recorded"
+                ? 0
+                : state
+                  ? state.buyerTxCount - state.buyerTxCountAfterSetup
+                  : "pending"}
             </div>
-            <p className="note">Unchanged no matter how many calls are made</p>
+            <p className="note">
+              {source === "recorded"
+                ? "Calls were signed off-chain. The settle tx is the seller's."
+                : "Unchanged no matter how many calls are made"}
+            </p>
           </div>
         </div>
 
@@ -210,7 +250,7 @@ export function Dashboard({ rows, state, system, error, settled, scene }: Props)
                         )}
                       </td>
                       <td className={`charged${ok ? "" : " zero"}`}>
-                        {ok ? units(r.amount) : "0.0000"}
+                        {ok ? units(r.amount, dec) : "0.0000"}
                       </td>
                       <td className="hash">
                         {r.settledTxHash ? (
@@ -235,7 +275,7 @@ export function Dashboard({ rows, state, system, error, settled, scene }: Props)
         </div>
 
         <div id="settle">
-          <SystemPanel system={system} />
+          <SystemPanel system={system} decimals={dec} />
         </div>
 
         <p className="footnote">

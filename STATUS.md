@@ -333,7 +333,9 @@ FEE_CURRENCY=   # unset — pay gas in CELO
 
 The public site is [web-one-drab-31.vercel.app](https://web-one-drab-31.vercel.app/). Do not create a second Vercel project. `appDomain` on the draft is that URL.
 
-Local `vite` still proxies `/api` to `127.0.0.1:4021`. A Vercel build should set `VITE_SELLER_URL` only if a public seller is running. `#settle` can also show baked-in mainnet hashes via `VITE_MAINNET_ESCROW` / `VITE_MAINNET_SETTLE_TX`.
+When no seller is reachable the page shows the **Celo Sepolia rehearsal**, read back from chain 11142220 (escrow `0x0d58…abca`, settle `0x6ddd…8794`). Judge scenes `#healthy` `#breach` `#settle` `#system` work on that snapshot. A live seller at `VITE_SELLER_URL` replaces it.
+
+Local `vite` still proxies `/api` to `127.0.0.1:4021`. `#settle` can also show baked-in mainnet hashes via `VITE_MAINNET_ESCROW` / `VITE_MAINNET_SETTLE_TX`.
 
 ## Judge path (90 seconds)
 

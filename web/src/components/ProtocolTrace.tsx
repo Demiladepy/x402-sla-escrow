@@ -1,4 +1,4 @@
-import { short, units } from "../lib/format";
+import { decimalsOf, explorerTx, short, tokenOf, units } from "../lib/format";
 import { MAINNET_PROOF, hasMainnetProof } from "../lib/mainnetProof";
 import type { LedgerRow, State, System } from "../lib/types";
 import type { Scene } from "../lib/scenes";
@@ -32,10 +32,13 @@ const COPY: Record<Scene, { title: string; lede: string }> = {
 export function ProtocolTrace({ scene, row, state, system }: Props) {
   const copy = COPY[scene];
   const budget = state?.sla.maxLatencyMs ?? 800;
-  const charged = row ? (row.acked ? units(row.amount) : "0.0000") : "pending";
+  const dec = decimalsOf(state);
+  const token = tokenOf(state);
+  const charged = row ? (row.acked ? units(row.amount, dec) : "0.0000") : "pending";
   const reason =
     row?.verdict?.reason ??
     (row && row.latencyMs > budget ? "latency" : row && row.statusCode !== 200 ? `HTTP ${row.statusCode}` : null);
+  const settleHash = row?.settledTxHash ?? system?.attribution.verifiedTx ?? null;
 
   return (
     <div className="scene" id={scene === "settle" || scene === "system" ? undefined : scene}>
@@ -47,7 +50,7 @@ export function ProtocolTrace({ scene, row, state, system }: Props) {
         <dl className="scene-trace">
           <div>
             <dt>Chain</dt>
-            <dd>{system?.chain.chainId ?? "pending"}</dd>
+            <dd>{system?.chain.chainId === 11142220 ? "11142220 · Celo Sepolia" : (system?.chain.chainId ?? "pending")}</dd>
           </div>
           <div>
             <dt>Escrow</dt>
@@ -66,7 +69,7 @@ export function ProtocolTrace({ scene, row, state, system }: Props) {
           <div>
             <dt>Held / owed</dt>
             <dd>
-              {system ? `${units(system.solvency.held)} / ${units(system.solvency.owed)}` : "pending"}
+              {system ? `${units(system.solvency.held, decimalsOf(state))} / ${units(system.solvency.owed, decimalsOf(state))}` : "pending"}
             </dd>
           </div>
         </dl>
@@ -91,7 +94,7 @@ export function ProtocolTrace({ scene, row, state, system }: Props) {
           <div>
             <dt>Live settle tx</dt>
             <dd className="code">
-              {system?.attribution.verifiedTx ? short(system.attribution.verifiedTx, 8) : "pending"}
+              {settleHash ? <TxLink chainId={system?.chain.chainId} hash={settleHash} /> : "pending"}
             </dd>
           </div>
           {hasMainnetProof() && (
@@ -132,7 +135,7 @@ export function ProtocolTrace({ scene, row, state, system }: Props) {
           </div>
           <div>
             <dt>Authorized amount</dt>
-            <dd>{units(row.amount)} cUSD</dd>
+            <dd>{units(row.amount, dec)} {token}</dd>
           </div>
           <div>
             <dt>Requested at</dt>
@@ -166,14 +169,33 @@ export function ProtocolTrace({ scene, row, state, system }: Props) {
           </div>
           <div>
             <dt>Charged</dt>
-            <dd>{charged} cUSD</dd>
+            <dd>{charged} {token}</dd>
           </div>
           <div>
             <dt>Settlement</dt>
-            <dd className="code">{row.settledTxHash ? short(row.settledTxHash, 8) : row.acked ? "queued" : "none. never a payment"}</dd>
+            <dd className="code">
+              {row.settledTxHash ? (
+                <TxLink chainId={system?.chain.chainId} hash={row.settledTxHash} />
+              ) : row.acked ? (
+                "queued"
+              ) : (
+                "none. never a payment"
+              )}
+            </dd>
           </div>
         </dl>
       )}
     </div>
+  );
+}
+
+function TxLink({ chainId, hash }: { chainId?: number; hash: string }) {
+  const href = explorerTx(chainId, hash);
+  const label = short(hash, 8);
+  if (!href) return label;
+  return (
+    <a href={href} rel="noreferrer">
+      {label}
+    </a>
   );
 }

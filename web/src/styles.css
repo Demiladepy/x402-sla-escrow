@@ -299,7 +299,8 @@ a:hover {
   box-shadow: 0 0 0 3px oklch(0.955 0.205 110 / 0.16);
 }
 
-.dot.stale {
+.dot.stale,
+.dot.recorded {
   background: var(--text-faint);
   box-shadow: none;
 }
@@ -307,7 +308,7 @@ a:hover {
 @media (prefers-reduced-motion: no-preference) {
   /* Only the genuinely-live dot pulses; a stale or connecting one must not
      imply activity it does not have. */
-  .dot:not(.stale):not(.waiting) {
+  .dot:not(.stale):not(.waiting):not(.recorded) {
     animation: pulse 2.4s var(--ease-out-quint) infinite;
   }
 }
@@ -512,10 +513,7 @@ a:hover {
 }
 
 .call-pairs li {
-  padding: 4px 9px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  font-size: 0.8125rem;
+  display: inline-flex;
 }
 
 .call-code {
@@ -528,6 +526,152 @@ a:hover {
   color: var(--text-dim);
   overflow-x: auto;
   white-space: pre-wrap;
+}
+
+.call-stage {
+  margin-top: var(--space-2xl);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+  gap: var(--space-sm);
+}
+
+.call-terms {
+  margin: var(--space-sm) 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.call-terms dt {
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.call-terms dd {
+  margin: 4px 0 0;
+  font-size: 0.9375rem;
+}
+
+.call-pair {
+  font: inherit;
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+
+.call-pair.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.call-pair:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.call-run {
+  padding: var(--space-md);
+  background: var(--void);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.call-run h3 {
+  font-size: 1.0625rem;
+  margin-bottom: var(--space-sm);
+}
+
+.call-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+.call-btn {
+  font: inherit;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.call-btn:hover:not(:disabled) {
+  border-color: var(--text-muted);
+}
+
+.call-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.call-wait {
+  margin-top: var(--space-md);
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.call-log {
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.call-log li {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: var(--space-xs);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.call-k {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+.call-v {
+  color: var(--text-dim);
+}
+
+.call-log .ok .call-k,
+.call-log .ok .call-v {
+  color: var(--accent);
+}
+
+.call-log .bad .call-k,
+.call-log .bad .call-v {
+  color: var(--breach);
+}
+
+.call-verdict {
+  margin-top: var(--space-md);
+  font-size: 1.0625rem;
+}
+
+.call-verdict.ok {
+  color: var(--accent);
+}
+
+.call-verdict.bad {
+  color: var(--breach);
+}
+
+@media (max-width: 800px) {
+  .call-stage {
+    grid-template-columns: 1fr;
+  }
 }
 
 .identity-inner {
@@ -1512,9 +1656,17 @@ footer.foot a {
   overflow-x: auto;
 }
 
-.offline-note {
-  font-size: 0.8125rem !important;
-  color: var(--text-faint) !important;
+.offline.recorded {
+  max-width: none;
+}
+
+.offline a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.offline a:hover {
+  text-decoration: underline;
 }
 
 .dot.waiting {

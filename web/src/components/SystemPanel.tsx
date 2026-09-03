@@ -3,14 +3,15 @@ import type { System } from "../lib/types";
 
 interface Props {
   system: System | null;
+  decimals?: number;
 }
 
-export function SystemPanel({ system }: Props) {
+export function SystemPanel({ system, decimals = 18 }: Props) {
   if (!system) {
     return (
       <div className="sys-empty">
-        The chain binding, the solvency invariant and the settlement gas figures are read live from
-        the node. They appear when the seller is running.
+        The chain binding, the solvency invariant and the settlement gas figures are read from the
+        node. They appear here from the Sepolia rehearsal until a live seller is reachable.
       </div>
     );
   }
@@ -85,15 +86,15 @@ export function SystemPanel({ system }: Props) {
         <dl className="sys-rows">
           <div>
             <dt>Token held by escrow</dt>
-            <dd>{units(solvency.held)}</dd>
+            <dd>{units(solvency.held, decimals)}</dd>
           </div>
           <div>
             <dt>Owed: buyer + seller + bond</dt>
-            <dd>{units(solvency.owed)}</dd>
+            <dd>{units(solvency.owed, decimals)}</dd>
           </div>
           <div>
             <dt>Surplus</dt>
-            <dd>{units(surplus)}</dd>
+            <dd>{units(surplus, decimals)}</dd>
           </div>
         </dl>
         <p className="sys-note">
@@ -154,7 +155,13 @@ export function SystemPanel({ system }: Props) {
             <dt>Chain</dt>
             <dd>
               {chain.chainId}
-              {chain.chainId === 31337 ? " · anvil" : chain.chainId === 42220 ? " · Celo" : ""}
+              {chain.chainId === 31337
+                ? " · anvil"
+                : chain.chainId === 42220
+                  ? " · Celo"
+                  : chain.chainId === 11142220
+                    ? " · Celo Sepolia"
+                    : ""}
             </dd>
           </div>
           <div>

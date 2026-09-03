@@ -8,6 +8,7 @@ import {
   scrollToId,
   showNow,
 } from "../lib/motion";
+import type { LedgerSource } from "../lib/useLedger";
 import type { State } from "../lib/types";
 import { Num } from "./Num";
 
@@ -15,9 +16,10 @@ interface Props {
   state: State | null;
   callCount: number;
   settled: boolean;
+  source: LedgerSource | null;
 }
 
-export function Hero({ state, callCount, settled }: Props) {
+export function Hero({ state, callCount, settled, source }: Props) {
   const buyerTxs = state ? state.buyerTxCount - state.buyerTxCountAfterSetup : null;
   const root = useRef<HTMLElement>(null);
 
@@ -112,7 +114,7 @@ export function Hero({ state, callCount, settled }: Props) {
   return (
     <section className="hero wrap" ref={root}>
       <span className="eyebrow" data-hero>
-        Celo · paid HTTP · cUSD
+        Celo · paid HTTP · stablecoin
       </span>
 
       <h1 data-hero-heading>Serving slowly is serving for free.</h1>
@@ -125,7 +127,12 @@ export function Hero({ state, callCount, settled }: Props) {
 
       <div className="hero-foot">
         <div className="claim" data-hero>
-          {buyerTxs === null ? (
+          {source === "recorded" ? (
+            <p className="claim-line">
+              One paid call settled on Celo Sepolia. One breach charged nothing. The buyer signed
+              off-chain.
+            </p>
+          ) : buyerTxs === null ? (
             <p className="claim-line pending">
               {settled
                 ? "The live figures on this page come from a running instance. Start it with npm run serve --workspace demo."
