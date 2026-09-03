@@ -14,7 +14,14 @@ const HACKATHON = "agents-at-work";
 
 const SUBMISSION = {
   projectName: "SLA-escrowed x402",
+  tagline: "Serving slowly is serving for free.",
+  description:
+    "Pay-per-call HTTP on Celo where payment is conditional on the response meeting the advertised SLA. A buyer deposits once and signs off-chain. If the call is late or returns the wrong status, the buyer does not acknowledge, the escrow reverts, and the money never moves. No refund. No dispute.\n\n" +
+    "Public demo: https://web-one-drab-31.vercel.app\n" +
+    "Mainnet identity: ERC-8004 agent 9807 (https://8004scan.io/agents/celo/9807).\n" +
+    "Mechanism rehearsal on Celo Sepolia: escrow 0x0d58d053cbaf81e480205c7f942d3d065539abca, settle 0x6ddd02e0d5762b82769d1f476d75bd7f9edd2d8c76e771ba875834f1c9da8794, attribution decoded as x402_sla, celo_5ffb6e9c75fb.",
   githubUrl: "https://github.com/Demiladepy/x402-sla-escrow",
+  demoUrl: "https://web-one-drab-31.vercel.app",
   trackIds: ["judges-favorite"],
   customFields: {
     telegram: "@AaAgenDA",

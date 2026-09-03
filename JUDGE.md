@@ -10,3 +10,21 @@ Mainnet identity is agent [9807](https://8004scan.io/agents/celo/9807). Do not a
 4. `#settle`. Attribution decoded: `x402_sla`, `celo_5ffb6e9c75fb`. Close on agent 9807.
 
 Do not add a fifth beat. Do not mention bridging.
+
+## X post (paste this)
+
+Serving slowly is serving for free.
+
+An agent pays per HTTP call. Miss the SLA and the money never moves. No refund, no dispute.
+
+Demo: https://web-one-drab-31.vercel.app
+Repo: https://github.com/Demiladepy/x402-sla-escrow
+Agent: https://8004scan.io/agents/celo/9807
+
+@CeloDevs @Celo
+
+After it is live, put the post URL in `.env` as `SOCIAL_LINK` and run:
+
+```bash
+npm run hack:publish -- --publish
+```

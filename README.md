@@ -2,7 +2,7 @@
 
 **Pay-per-call payments for agents, where the payment is conditional on the response actually meeting the endpoint's advertised SLA.**
 
-Built on Celo, settled in cUSD.
+Built on Celo. Public demo: [web-one-drab-31.vercel.app](https://web-one-drab-31.vercel.app/). ERC-8004 agent [9807](https://8004scan.io/agents/celo/9807).
 
 ---
 

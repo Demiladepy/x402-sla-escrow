@@ -371,6 +371,9 @@ stays empty rather than listing a testnet address as if it were mainnet.
 If a stablecoin later appears on `0x9221…` with no extra circus, `settle:mainnet`
 is still in the repo. It is not the path to publish.
 
+The draft on Celo Builders now has a tagline, description, `demoUrl`, and
+`additionalTrackRationale`. Status remains `draft` until the X post.
+
 ## Still needed from a human
 
 | Item | Needs |
