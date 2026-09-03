@@ -43,8 +43,10 @@
   --space-3xl: 96px;
   --space-4xl: 144px;
 
-  --display: "Archivo", ui-sans-serif, sans-serif;
-  --body: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --display: "Varela Round", ui-sans-serif, sans-serif;
+  --body: "Varela Round", ui-sans-serif, system-ui, sans-serif;
+  --radius: 14px;
+  --radius-sm: 8px;
 
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -63,6 +65,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  font-synthesis: none;
 }
 
 body {
@@ -71,7 +74,8 @@ body {
   color: var(--text);
   font-family: var(--body);
   font-size: 1rem;
-  line-height: 1.6;
+  font-weight: 400;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -80,10 +84,9 @@ h1,
 h2,
 h3 {
   font-family: var(--display);
-  font-weight: 700;
-  font-stretch: 118%;
-  line-height: 0.98;
-  letter-spacing: -0.02em;
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
   margin: 0;
   text-wrap: balance;
 }
@@ -217,8 +220,9 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-md);
+  gap: var(--space-sm) var(--space-md);
   padding-block: var(--space-sm);
+  flex-wrap: wrap;
 }
 
 .wordmark {
@@ -226,15 +230,14 @@ a:hover {
   align-items: baseline;
   gap: var(--space-2xs);
   font-family: var(--display);
-  font-weight: 800;
-  font-stretch: 112%;
+  font-weight: 400;
   font-size: 0.9375rem;
   letter-spacing: -0.01em;
 }
 
 .wordmark span {
   color: var(--text-faint);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .masthead nav {
@@ -256,7 +259,10 @@ a:hover {
 
 @media (max-width: 720px) {
   .masthead nav {
-    display: none;
+    order: 3;
+    width: 100%;
+    gap: var(--space-sm);
+    font-size: 0.75rem;
   }
 }
 
@@ -324,10 +330,10 @@ a:hover {
 }
 
 .hero h1 {
-  font-size: clamp(2.75rem, 8.2vw, 6.75rem);
-  font-weight: 800;
-  font-stretch: 122%;
-  max-width: 17ch;
+  font-size: clamp(2.5rem, 7.4vw, 5.75rem);
+  font-weight: 400;
+  max-width: 14ch;
+  letter-spacing: -0.015em;
 }
 
 .hero .lede {
@@ -340,7 +346,7 @@ a:hover {
 
 .hero .lede strong {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .hero-foot {
@@ -370,8 +376,7 @@ a:hover {
 .claim-line {
   font-family: var(--display);
   font-size: clamp(1.5rem, 2.8vw, 2.125rem);
-  font-weight: 600;
-  font-stretch: 112%;
+  font-weight: 400;
   line-height: 1.12;
   letter-spacing: -0.015em;
   color: var(--text-dim);
@@ -380,8 +385,7 @@ a:hover {
 
 .claim-line em {
   font-style: normal;
-  font-weight: 800;
-  font-stretch: 125%;
+  font-weight: 400;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
@@ -405,11 +409,11 @@ a:hover {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
-  padding: 11px 18px;
+  padding: 12px 20px;
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: var(--radius);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 400;
   text-decoration: none;
   color: var(--text);
   transition:
@@ -465,10 +469,72 @@ a:hover {
   margin-top: var(--space-sm);
 }
 
+/* Judge scenes — pinned proof, not another marketing block. */
+.scene {
+  margin: var(--space-xl) 0 0;
+  padding: var(--space-lg);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  scroll-margin-top: 80px;
+}
+
+.scene-kicker {
+  display: block;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-dim);
+  margin-bottom: var(--space-2xs);
+}
+
+.scene h2 {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  max-width: 22ch;
+}
+
+.scene-lede {
+  margin-top: var(--space-xs);
+  max-width: var(--measure);
+  color: var(--text-dim);
+}
+
+.scene-wait {
+  margin-top: var(--space-md);
+  color: var(--text-muted);
+}
+
+.scene-trace {
+  margin: var(--space-lg) 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-sm) var(--space-lg);
+}
+
+.scene-trace dt {
+  font-size: 0.625rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.scene-trace dd {
+  margin: var(--space-3xs) 0 0;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+#settle,
+#system {
+  scroll-margin-top: 72px;
+}
+
 .index {
   font-family: var(--display);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.12em;
   color: var(--accent-dim);
   display: block;
@@ -485,6 +551,8 @@ a:hover {
   gap: 1px;
   background: var(--line-soft);
   border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 /*
@@ -516,14 +584,13 @@ a:hover {
 .step-n {
   font-family: var(--display);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.14em;
   color: var(--text-faint);
 }
 
 .step h3 {
   font-size: 1.0625rem;
-  font-stretch: 108%;
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
@@ -547,6 +614,8 @@ a:hover {
 .enforce {
   margin-top: var(--space-2xl);
   border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .enforce-row {
@@ -571,7 +640,7 @@ a:hover {
 }
 
 .enforce-term {
-  font-weight: 600;
+  font-weight: 400;
   font-size: 0.9375rem;
 }
 
@@ -594,10 +663,7 @@ a:hover {
 .badge {
   display: inline-block;
   padding: 3px 8px;
-  border-radius: 2px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -667,7 +733,7 @@ a:hover {
 .stat h3 {
   font-family: var(--body);
   font-size: 0.6875rem;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -678,8 +744,7 @@ a:hover {
   margin-top: var(--space-2xs);
   font-family: var(--display);
   font-size: clamp(1.75rem, 3.4vw, 2.5rem);
-  font-weight: 700;
-  font-stretch: 118%;
+  font-weight: 400;
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -691,7 +756,7 @@ a:hover {
 .stat .unit {
   font-family: var(--body);
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--text-faint);
   letter-spacing: 0.04em;
 }
@@ -722,7 +787,6 @@ a:hover {
 
 .section-head h2 {
   font-size: 1.375rem;
-  font-stretch: 112%;
 }
 
 .section-head span {
@@ -746,7 +810,7 @@ thead th {
   padding: var(--space-xs) var(--space-sm);
   font-family: var(--body);
   font-size: 0.6875rem;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -793,7 +857,7 @@ td.hash {
 }
 
 td.charged {
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text);
 }
 
@@ -805,9 +869,9 @@ td.charged.zero {
 .tag {
   display: inline-block;
   padding: 2px 7px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
@@ -902,7 +966,7 @@ td.charged.zero {
 
 .footnote strong {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .caveat {
@@ -916,7 +980,6 @@ td.charged.zero {
 
 .caveat h3 {
   font-size: 0.9375rem;
-  font-stretch: 108%;
   margin-bottom: var(--space-3xs);
 }
 
@@ -942,14 +1005,19 @@ footer.foot {
   padding-block: var(--space-2xl) var(--space-3xl);
 }
 
+.foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+}
+
 footer.foot a {
   color: var(--text-dim);
 }
 
 .code {
   font-family: var(--display);
-  font-stretch: 100%;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.01em;
   color: var(--text-dim);
 }
@@ -1031,12 +1099,13 @@ footer.foot a {
   top: -6px;
   left: 6px;
   font-size: 0.625rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent-ink);
   background: var(--accent);
   padding: 2px 5px;
+  border-radius: 4px;
   white-space: nowrap;
 }
 
@@ -1075,7 +1144,7 @@ footer.foot a {
 
 .dist-read strong {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .dist-stats {
@@ -1096,8 +1165,7 @@ footer.foot a {
   margin: var(--space-3xs) 0 0;
   font-family: var(--display);
   font-size: 1.125rem;
-  font-weight: 700;
-  font-stretch: 112%;
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
   color: var(--text);
 }
@@ -1118,20 +1186,19 @@ footer.foot a {
   margin-top: var(--space-lg);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
-  gap: 1px;
-  background: var(--line-soft);
-  border: 1px solid var(--line-soft);
+  gap: var(--space-sm);
 }
 
 .sys-card {
-  background: var(--bg);
+  background: var(--surface);
   padding: var(--space-md);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
   container-type: inline-size;
 }
 
 .sys-card h3 {
   font-size: 0.9375rem;
-  font-stretch: 108%;
   line-height: 1.25;
   margin-bottom: var(--space-sm);
 }
@@ -1143,8 +1210,7 @@ footer.foot a {
   gap: var(--space-3xs) 6px;
   font-family: var(--display);
   font-size: clamp(1.5rem, 4cqi, 2rem);
-  font-weight: 800;
-  font-stretch: 118%;
+  font-weight: 400;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   color: var(--accent);
@@ -1153,7 +1219,7 @@ footer.foot a {
 .sys-figure-unit {
   font-family: var(--body);
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.04em;
   color: var(--text-faint);
 }
@@ -1167,8 +1233,7 @@ footer.foot a {
 .sys-verdict {
   font-family: var(--display);
   font-size: 1.25rem;
-  font-weight: 700;
-  font-stretch: 112%;
+  font-weight: 400;
 }
 
 .sys-verdict.ok {
@@ -1208,7 +1273,7 @@ footer.foot a {
 .sys-rows dd {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text);
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -1253,7 +1318,7 @@ footer.foot a {
   border-bottom: 1px solid var(--line-soft);
   font-family: var(--body);
   font-size: 0.625rem;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -1306,6 +1371,7 @@ footer.foot a {
   padding: var(--space-md);
   border: 1px solid var(--line);
   background: var(--surface);
+  border-radius: var(--radius);
   max-width: var(--measure);
 }
 
@@ -1318,8 +1384,7 @@ footer.foot a {
 .offline-head {
   font-family: var(--display);
   font-size: 1.0625rem;
-  font-weight: 700;
-  font-stretch: 110%;
+  font-weight: 400;
   color: var(--text) !important;
   margin-bottom: var(--space-2xs) !important;
 }
@@ -1331,7 +1396,6 @@ footer.foot a {
   background: var(--void);
   border: 1px solid var(--line-soft);
   font-family: var(--display);
-  font-stretch: 100%;
   font-size: 0.8125rem;
   color: var(--accent);
   overflow-x: auto;

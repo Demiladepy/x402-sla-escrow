@@ -1,13 +1,19 @@
 export interface LedgerRow {
   requestId: string;
   buyer: string;
+  endpointId?: string;
   amount: string;
+  requestedAtMs?: number;
+  deadline?: number;
   statusCode: number;
+  servedAtMs?: number;
+  bodyHash?: string;
   latencyMs: number;
   acked: boolean;
   settledTxHash: string | null;
   servedAt: number;
   meta: { pair?: string; mode?: string } | null;
+  verdict?: { ok: boolean; reason: string | null };
 }
 
 export interface State {

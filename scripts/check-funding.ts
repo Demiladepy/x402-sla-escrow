@@ -100,6 +100,15 @@ async function report(net: Network, address: Address) {
 
   const funded = native > 0n || balances.some((b) => b !== null && b > 0n);
   if (!funded) console.log("  (empty)");
+
+  if (net.key === "mainnet") {
+    const cusd = balances[net.tokens.findIndex((t) => t.symbol === "cUSD")];
+    if (cusd === 0n || cusd === null) {
+      console.log("  NOT FUNDED: send $5–10 cUSD to this address on chain 42220.");
+    } else {
+      console.log(`  cUSD funded: ${formatUnits(cusd, 18)}`);
+    }
+  }
 }
 
 async function main() {

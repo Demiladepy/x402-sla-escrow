@@ -119,8 +119,8 @@ export function Hero({ state, callCount, settled }: Props) {
 
       <p className="lede" data-hero>
         An agent pays per API call. If the response misses the latency budget or returns the wrong
-        status, <strong>the money never moves</strong> — because the escrow re-checks the SLA itself
-        and reverts. There is nothing to refund and no dispute to open.
+        status, <strong>the money never moves</strong>. The escrow re-checks the SLA itself and
+        reverts. There is nothing to refund and no dispute to open.
       </p>
 
       <div className="hero-foot">

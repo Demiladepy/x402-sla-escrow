@@ -25,13 +25,13 @@ export function Enforcement() {
       <div className="wrap">
         <div className="band-head">
           <div data-reveal>
-            <span className="index">02 — Trust boundary</span>
+            <span className="index">02 Trust boundary</span>
             <h2>What is trustless, and what is merely bonded.</h2>
           </div>
           <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>
             <p>
               Being precise about this is the whole design. Two of the three SLA terms are decided
-              by the contract. The third cannot be, so it is priced instead — and labelled as such.
+              by the contract. The third cannot be, so it is priced instead, and labelled as such.
             </p>
             <p>
               Forging a receipt to steal one call's revenue puts a bond worth many times that

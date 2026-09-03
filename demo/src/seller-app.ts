@@ -1,5 +1,5 @@
 import express from "express";
-import { keccak256, toBytes, type Address, type Hex } from "viem";
+import { keccak256, toBytes, type Account, type Address, type Hex } from "viem";
 import {
   ACK_PATH,
   ackHandler,
@@ -7,7 +7,7 @@ import {
   slaEndpoint,
   type SettlementStore,
 } from "@x402sla/sdk";
-import { seller } from "./chain.js";
+import { seller as localSeller } from "./chain.js";
 
 /**
  * The seller side of the demo: an FX rate feed an agent would actually pay for.
@@ -46,6 +46,8 @@ export interface SellerAppConfig {
   price: bigint;
   maxLatencyMs: number;
   port: number;
+  /** Defaults to the local anvil seller. Override on a real network. */
+  account?: Account;
 }
 
 export function createSellerApp(cfg: SellerAppConfig): {
@@ -54,11 +56,21 @@ export function createSellerApp(cfg: SellerAppConfig): {
 } {
   const store = createMemoryStore();
   const app = express();
+  app.use((_req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "content-type, x-payment");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    if (_req.method === "OPTIONS") {
+      res.sendStatus(204);
+      return;
+    }
+    next();
+  });
   app.use(express.json());
 
   const paid = slaEndpoint(
     {
-      account: seller,
+      account: cfg.account ?? localSeller,
       escrow: cfg.escrow,
       chainId: cfg.chainId,
       endpointId: cfg.endpointId,
@@ -102,17 +114,34 @@ export function createSellerApp(cfg: SellerAppConfig): {
 
   app.get("/api/ledger", (_req, res) => {
     res.json(
-      store.all().map((s) => ({
-        requestId: s.auth.requestId,
-        buyer: s.auth.buyer,
-        amount: s.auth.amount.toString(),
-        statusCode: s.receipt.statusCode,
-        latencyMs: Number(s.receipt.servedAtMs - s.auth.requestedAtMs),
-        acked: Boolean(s.ackSig),
-        settledTxHash: s.settledTxHash ?? null,
-        servedAt: s.servedAt,
-        meta: s.meta ?? null,
-      })),
+      store.all().map((s) => {
+        const requestedAtMs = Number(s.auth.requestedAtMs);
+        const servedAtMs = Number(s.receipt.servedAtMs);
+        const latencyMs = servedAtMs - requestedAtMs;
+        const overLatency = latencyMs > cfg.maxLatencyMs;
+        const badStatus = s.receipt.statusCode !== 200;
+        const ok = Boolean(s.ackSig);
+        return {
+          requestId: s.auth.requestId,
+          buyer: s.auth.buyer,
+          endpointId: s.auth.endpointId,
+          amount: s.auth.amount.toString(),
+          requestedAtMs,
+          deadline: Number(s.auth.deadline),
+          statusCode: s.receipt.statusCode,
+          servedAtMs,
+          bodyHash: s.receipt.bodyHash,
+          latencyMs,
+          acked: ok,
+          settledTxHash: s.settledTxHash ?? null,
+          servedAt: s.servedAt,
+          meta: s.meta ?? null,
+          verdict: {
+            ok,
+            reason: ok ? null : overLatency ? "latency" : badStatus ? `HTTP ${s.receipt.statusCode}` : "unacked",
+          },
+        };
+      }),
     );
   });
 

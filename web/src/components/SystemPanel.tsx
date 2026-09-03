@@ -69,7 +69,7 @@ export function SystemPanel({ system }: Props) {
               Measured from real receipts, not estimated: per-call gas across{" "}
               {settlement.transactions} settlements averages{" "}
               {settlement.gasPerCall?.toLocaleString()}. Each redemption verifies two signatures
-              and writes state, so the marginal call is not free — batching amortises the
+              and writes state, so the marginal call is not free. Batching amortises the
               per-transaction overhead, not the per-call work. The buyer pays none of it either
               way.
             </p>
@@ -122,8 +122,8 @@ export function SystemPanel({ system }: Props) {
             </dl>
             <p className="sys-note">
               These were decoded out of a sent transaction's ERC-8021 suffix, not read from
-              configuration. The tag travels in calldata, so it cannot be added after the fact —
-              which is why it is verified rather than assumed.
+              configuration. The tag travels in calldata, so it cannot be added after the fact.
+              That is why it is verified rather than assumed.
             </p>
           </>
         ) : (
@@ -140,7 +140,7 @@ export function SystemPanel({ system }: Props) {
               )}
             </ul>
             <p className="sys-note">
-              Configured but not yet confirmed on-chain — verification runs on the first
+              Configured but not yet confirmed on-chain. Verification runs on the first
               settlement. On Celo mainnet the settler refuses to start without a tag at all.
             </p>
           </>

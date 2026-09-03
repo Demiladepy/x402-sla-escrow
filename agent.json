@@ -9,5 +9,5 @@
       "chainId": 42220
     }
   ],
-  "supportedTrust": ["reputation"]
+  "supportedTrust": []
 }

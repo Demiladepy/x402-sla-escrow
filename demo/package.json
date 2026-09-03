@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "demo": "tsx --env-file-if-exists=../.env src/run.ts",
-    "serve": "tsx --env-file-if-exists=../.env src/serve.ts"
+    "serve": "tsx --env-file-if-exists=../.env src/serve.ts",
+    "rehearse:sepolia": "tsx --env-file-if-exists=../.env src/rehearse-sepolia.ts",
+    "settle:mainnet": "tsx --env-file-if-exists=../.env src/settle-mainnet.ts"
   },
   "dependencies": {
     "@x402sla/sdk": "*",

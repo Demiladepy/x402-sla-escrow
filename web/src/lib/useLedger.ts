@@ -5,8 +5,10 @@ const POLL_MS = 1500;
 
 export { POLL_MS };
 
+const SELLER = (import.meta.env.VITE_SELLER_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+
 async function json<T>(path: string): Promise<T> {
-  const res = await fetch(path);
+  const res = await fetch(`${SELLER}${path}`);
   if (!res.ok) throw new Error(`${path} returned ${res.status}`);
   return (await res.json()) as T;
 }

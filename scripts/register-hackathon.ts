@@ -23,6 +23,11 @@ const SUBMISSION = {
     agentWalletAddress: "0x922184A4702f0DF95fB86C3879BC3eD935b75721",
     country: "Nigeria",
     cpayBetaOptIn: true,
+    celoNetwork: "celo-mainnet",
+    stablecoinsUsed: ["USDm / Mento", "x402 settlement"],
+    ...(process.env.OWN_CONTRACTS ? { ownContracts: process.env.OWN_CONTRACTS } : {}),
+    ...(process.env.SOCIAL_LINK ? { socialLink: process.env.SOCIAL_LINK } : {}),
+    appDomain: process.env.APP_DOMAIN ?? "https://web-one-drab-31.vercel.app",
   },
 } as const;
 

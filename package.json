@@ -15,10 +15,16 @@
     "typecheck": "npm run typecheck --workspace sdk",
     "demo": "npm run demo --workspace demo",
     "agent:wallet": "tsx scripts/new-agent-wallet.ts",
+    "buyer:wallet": "tsx scripts/new-buyer-wallet.ts",
     "agent:balance": "tsx --env-file=.env scripts/check-funding.ts",
     "agent:register": "tsx --env-file=.env scripts/register-8004.ts",
     "hack:register": "tsx --env-file=.env scripts/register-hackathon.ts",
-    "hack:status": "tsx --env-file=.env scripts/register-hackathon.ts --status"
+    "hack:status": "tsx --env-file=.env scripts/register-hackathon.ts --status",
+    "escrow:deploy": "tsx --env-file=.env scripts/deploy-escrow.ts",
+    "rehearse:sepolia": "npm run rehearse:sepolia --workspace demo --",
+    "settle:mainnet": "npm run settle:mainnet --workspace demo --",
+    "agent:feedback": "tsx --env-file=.env scripts/give-feedback.ts",
+    "hack:publish": "tsx --env-file=.env scripts/publish-submission.ts"
   },
   "engines": {
     "node": ">=20"

@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
+  // GitHub project pages need /x402-sla-escrow/. Vercel and local stay /.
+  base: process.env.VITE_BASE || "/",
   server: {
     port: 5173,
     proxy: {

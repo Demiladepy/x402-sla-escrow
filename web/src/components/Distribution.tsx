@@ -175,7 +175,7 @@ export function Distribution({ rows, budget }: Props) {
         </div>
       </div>
 
-      <p className="dist-axis">Response time, milliseconds — log scale</p>
+      <p className="dist-axis">Response time, milliseconds (log scale)</p>
 
       <div className="dist-read">
         <p>

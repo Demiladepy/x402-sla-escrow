@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import { POLL_MS } from "../lib/useLedger";
 import { short, units } from "../lib/format";
+import { pickPinnedRow, type Scene } from "../lib/scenes";
 import { useRowEnter } from "../lib/useRowEnter";
 import type { LedgerRow, State, System } from "../lib/types";
 import { Distribution } from "./Distribution";
 import { Num } from "./Num";
+import { ProtocolTrace } from "./ProtocolTrace";
 import { SystemPanel } from "./SystemPanel";
 
 /** The ledger grows without bound; the page should not. */
@@ -16,10 +18,12 @@ interface Props {
   system: System | null;
   error: string | null;
   settled: boolean;
+  scene: Scene | null;
 }
 
-export function Dashboard({ rows, state, system, error, settled }: Props) {
+export function Dashboard({ rows, state, system, error, settled, scene }: Props) {
   const ordered = useMemo(() => [...rows].sort((a, b) => b.servedAt - a.servedAt), [rows]);
+  const pinned = useMemo(() => pickPinnedRow(ordered, scene), [ordered, scene]);
 
   const budget = state?.sla.maxLatencyMs ?? 800;
   const expectedStatus = state?.sla.expectedStatus ?? 200;
@@ -38,7 +42,7 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
       <div className="wrap">
         <div className="band-head">
           <div data-reveal>
-            <span className="index">03 — Live</span>
+            <span className="index">03 Live</span>
             <h2>A running system, not a screenshot.</h2>
           </div>
           <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>
@@ -50,6 +54,8 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
           </div>
         </div>
 
+        {scene && <ProtocolTrace scene={scene} row={pinned} state={state} system={system} />}
+
         {error && settled && (
           <div className="offline" data-reveal>
             <p className="offline-head">Nothing is serving on this port.</p>
@@ -59,7 +65,7 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
             </p>
             <code>npm run serve --workspace demo</code>
             <p className="offline-note">
-              It needs a chain at <span className="code">127.0.0.1:8545</span> — start one with{" "}
+              It needs a chain at <span className="code">127.0.0.1:8545</span>. Start one with{" "}
               <span className="code">anvil</span> if there isn't one. The page reconnects on its
               own.
             </p>
@@ -73,7 +79,7 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
           </div>
           <div className="term">
             <dt>Price</dt>
-            <dd>{state ? `${units(state.sla.price)} cUSD` : "—"}</dd>
+            <dd>{state ? `${units(state.sla.price)} cUSD` : "pending"}</dd>
           </div>
           <div className="term">
             <dt>Latency SLA</dt>
@@ -85,7 +91,7 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
           </div>
           <div className="term">
             <dt>Seller bond</dt>
-            <dd>{state ? `${units(state.bond)} cUSD` : "—"}</dd>
+            <dd>{state ? `${units(state.bond)} cUSD` : "pending"}</dd>
           </div>
           <div className="term">
             <dt>Escrow</dt>
@@ -125,7 +131,7 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
           <div className="stat">
             <h3>Seller earned</h3>
             <div className="value">
-              {state ? units(state.sellerEarned) : "—"}
+              {state ? units(state.sellerEarned) : "pending"}
               <span className="unit">cUSD</span>
             </div>
             <p className="note">Settled on-chain, in batches</p>
@@ -134,7 +140,7 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
           <div className="stat">
             <h3>Buyer txs since deposit</h3>
             <div className="value">
-              {state ? state.buyerTxCount - state.buyerTxCountAfterSetup : "—"}
+              {state ? state.buyerTxCount - state.buyerTxCountAfterSetup : "pending"}
             </div>
             <p className="note">Unchanged no matter how many calls are made</p>
           </div>
@@ -180,12 +186,12 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
                   const overLatency = r.latencyMs > budget;
                   const badStatus = r.statusCode !== expectedStatus;
                   const ok = r.acked;
-                  const reason = overLatency ? "latency" : badStatus ? `HTTP ${r.statusCode}` : "—";
+                  const reason = overLatency ? "latency" : badStatus ? `HTTP ${r.statusCode}` : "";
 
                   return (
                     <tr key={r.requestId} data-rid={r.requestId}>
                       <td className="hash">{short(r.requestId, 4)}</td>
-                      <td>{r.meta?.pair ?? "—"}</td>
+                      <td>{r.meta?.pair ?? "pending"}</td>
                       <td>
                         {badStatus ? (
                           <span className="tag breach">{r.statusCode}</span>
@@ -200,7 +206,7 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
                         {ok ? (
                           <span className="tag ok">SLA met</span>
                         ) : (
-                          <span className="tag breach">breached · {reason}</span>
+                          <span className="tag breach">breached{reason ? ` · ${reason}` : ""}</span>
                         )}
                       </td>
                       <td className={`charged${ok ? "" : " zero"}`}>
@@ -212,7 +218,7 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
                         ) : ok ? (
                           <span className="tag pending">queued</span>
                         ) : (
-                          "—"
+                          "none"
                         )}
                       </td>
                     </tr>
@@ -223,12 +229,14 @@ export function Dashboard({ rows, state, system, error, settled }: Props) {
           )}
         </div>
 
-        <div className="section-head">
+        <div className="section-head" id="system">
           <h2>The system, reporting on itself</h2>
           <span>read from the chain, not from this page</span>
         </div>
 
-        <SystemPanel system={system} />
+        <div id="settle">
+          <SystemPanel system={system} />
+        </div>
 
         <p className="footnote">
           <strong>What to watch.</strong> Every breached row was charged nothing, and the buyer's
