@@ -49,7 +49,7 @@ export default function App() {
         <header className="masthead">
           <div className="wrap masthead-inner">
             <a className="wordmark" href={APP_DOMAIN || "/"} aria-label="SLA-escrowed x402">
-              <Mark size={28} />
+              <Mark size={32} />
               SLA-escrowed <span>x402</span>
             </a>
             <nav>
@@ -84,7 +84,7 @@ export default function App() {
         <footer className="foot">
           <div className="wrap foot-inner">
             <span className="foot-brand">
-              <Mark size={20} />
+              <Mark size={22} />
               Built on Celo. Paid per call.
             </span>
             <span className="foot-links">

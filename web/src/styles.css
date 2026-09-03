@@ -245,8 +245,8 @@ a:hover {
 .mark {
   display: block;
   flex-shrink: 0;
-  border-radius: var(--radius-sm);
-  background: #0047ff;
+  border-radius: 28%;
+  background: transparent;
 }
 
 .masthead nav {
