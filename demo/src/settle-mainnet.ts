@@ -2,8 +2,8 @@
  * The 8 Sep mainnet session: two calls, one tagged settlement.
  *
  * Refuses to broadcast unless --broadcast is passed, TOKEN is a known mainnet
- * stablecoin (USAT or cUSD), chain id is 42220, and the wallet holds that token.
- * Do not point serve.ts here.
+ * stablecoin (USAT, USDC, USDT, or cUSD), chain id is 42220, and the wallet
+ * holds that token. Do not point serve.ts here.
  *
  *   npm run settle:mainnet -- --dry-run
  *   npm run settle:mainnet -- --broadcast
@@ -33,7 +33,6 @@ import { artifact } from "./chain.js";
 
 const PORT = 4023;
 const MAX_LATENCY_MS = 800;
-const CUSD = "0x765DE816845861e75A25fCA122bb6898B8B1282a" as Address;
 const USAT = "0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771" as Address;
 
 function required(name: string): string {
@@ -46,10 +45,6 @@ async function main() {
   const dryRun = process.argv.includes("--dry-run") || !process.argv.includes("--broadcast");
   const net = NETWORKS.mainnet;
   const token = (process.env.TOKEN ?? USAT) as Address;
-  const allowed = [USAT, CUSD];
-  if (!allowed.some((a) => a.toLowerCase() === token.toLowerCase())) {
-    throw new Error(`mainnet TOKEN must be USAT ${USAT} or cUSD ${CUSD}, not ${token}.`);
-  }
   const asset = assertTokenOnChain(net, token);
 
   const account = privateKeyToAccount(required("AGENT_PRIVATE_KEY") as Hex);

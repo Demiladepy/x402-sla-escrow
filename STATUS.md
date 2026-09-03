@@ -369,7 +369,13 @@ decoded `x402_sla, celo_5ffb6e9c75fb`. The public page shows that run. `ownContr
 stays empty rather than listing a testnet address as if it were mainnet.
 
 If a stablecoin later appears on `0x9221…` with no extra circus, `settle:mainnet`
-is still in the repo. It is not the path to publish.
+is still in the repo. It is not required to publish.
+
+**Cheaper funding path (Valora, 3 Sep):** Celo gas can be paid in stables, so
+CELO is optional. In Valora, claim **5 USAT** on mainnet, or send USDC/USDT
+into Valora. Then send about **1** of that token on **Celo** to
+`0x922184A4702f0DF95fB86C3879BC3eD935b75721`. The agent already holds CELO for
+gas. Do not use Squid from Solana for this.
 
 The draft on Celo Builders now has a tagline, description, `demoUrl`, and
 `additionalTrackRationale`. Status remains `draft` until the X post.
