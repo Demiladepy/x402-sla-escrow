@@ -1,39 +1,27 @@
-# Static judge page. Seller stays off mainnet; bake proof via repo variables.
-name: pages
+# Build the public page. Hosting is Vercel (https://web-one-drab-31.vercel.app/),
+# not GitHub Pages, so this job only has to compile.
+name: web
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 permissions:
   contents: read
-  pages: write
-  id-token: write
-concurrency:
-  group: pages
-  cancel-in-progress: true
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run build --workspace web
         env:
-          VITE_BASE: /x402-sla-escrow/
+          VITE_APP_DOMAIN: https://web-one-drab-31.vercel.app
           VITE_SELLER_URL: ${{ vars.VITE_SELLER_URL }}
           VITE_MAINNET_ESCROW: ${{ vars.VITE_MAINNET_ESCROW }}
           VITE_MAINNET_DEPLOY_TX: ${{ vars.VITE_MAINNET_DEPLOY_TX }}
           VITE_MAINNET_SETTLE_TX: ${{ vars.VITE_MAINNET_SETTLE_TX }}
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: web/dist
-      - id: deploy
-        uses: actions/deploy-pages@v4
