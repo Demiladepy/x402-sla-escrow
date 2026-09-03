@@ -112,7 +112,7 @@ export function Hero({ state, callCount, settled }: Props) {
   return (
     <section className="hero wrap" ref={root}>
       <span className="eyebrow" data-hero>
-        Celo · x402 · settled in cUSD
+        Celo · paid HTTP · cUSD
       </span>
 
       <h1 data-hero-heading>Serving slowly is serving for free.</h1>
@@ -147,14 +147,14 @@ export function Hero({ state, callCount, settled }: Props) {
 
         <a
           className="jump"
-          href="#ledger"
+          href="#call"
           data-hero
           onClick={(event) => {
             event.preventDefault();
-            scrollToId("#ledger");
+            scrollToId("#call");
           }}
         >
-          Watch it happen live
+          See how an agent calls it
           <span className="arrow" aria-hidden="true">
             ↓
           </span>

@@ -71,7 +71,7 @@ export function Mechanism() {
       <div className="wrap">
         <div className="band-head">
           <div data-reveal>
-            <span className="index">01 Mechanism</span>
+            <span className="index">02 Mechanism</span>
             <h2>The payment is conditional, not reversible.</h2>
           </div>
           <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>

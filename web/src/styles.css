@@ -227,17 +227,26 @@ a:hover {
 
 .wordmark {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2xs);
+  align-items: center;
+  gap: var(--space-xs);
   font-family: var(--display);
   font-weight: 400;
   font-size: 0.9375rem;
   letter-spacing: -0.01em;
+  text-decoration: none;
+  color: var(--text);
 }
 
 .wordmark span {
   color: var(--text-faint);
   font-weight: 400;
+}
+
+.mark {
+  display: block;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: #0047ff;
 }
 
 .masthead nav {
@@ -467,6 +476,108 @@ a:hover {
 
 .band-head p + p {
   margin-top: var(--space-sm);
+}
+
+.call-grid {
+  margin-top: var(--space-2xl);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-sm);
+}
+
+.call-card {
+  padding: var(--space-md);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+}
+
+.call-card h3 {
+  font-size: 1.0625rem;
+  margin-bottom: var(--space-xs);
+}
+
+.call-card p {
+  color: var(--text-dim);
+  font-size: 0.9375rem;
+}
+
+.call-pairs {
+  margin: 0 0 var(--space-sm);
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+.call-pairs li {
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+}
+
+.call-code {
+  margin: var(--space-sm) 0 0;
+  padding: var(--space-sm);
+  background: var(--void);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--text-dim);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.identity-inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.identity-inner p {
+  margin-top: var(--space-xs);
+  color: var(--text-dim);
+  max-width: var(--measure);
+}
+
+.identity-facts {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.identity-facts dt {
+  font-size: 0.625rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.identity-facts dd {
+  margin: var(--space-3xs) 0 0;
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
+@media (max-width: 860px) {
+  .identity-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+#call,
+#agent {
+  scroll-margin-top: 80px;
+}
+
+.foot-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
 }
 
 /* Judge scenes — pinned proof, not another marketing block. */

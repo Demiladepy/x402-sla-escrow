@@ -42,7 +42,7 @@ export function Dashboard({ rows, state, system, error, settled, scene }: Props)
       <div className="wrap">
         <div className="band-head">
           <div data-reveal>
-            <span className="index">03 Live</span>
+            <span className="index">04 Live</span>
             <h2>A running system, not a screenshot.</h2>
           </div>
           <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>

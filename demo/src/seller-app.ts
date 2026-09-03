@@ -105,6 +105,17 @@ export function createSellerApp(cfg: SellerAppConfig): {
     void paid(req as never, res as never);
   });
 
+  app.get("/api/catalog", (_req, res) => {
+    res.json({
+      name: "FX rate",
+      pairs: Object.keys(RATES),
+      price: cfg.price.toString(),
+      maxLatencyMs: cfg.maxLatencyMs,
+      expectedStatus: 200,
+      path: "/api/rate",
+    });
+  });
+
   app.post(ACK_PATH, (req, res) => {
     void ackHandler({ escrow: cfg.escrow, chainId: cfg.chainId, store })(
       req as never,

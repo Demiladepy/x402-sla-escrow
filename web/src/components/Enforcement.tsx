@@ -25,7 +25,7 @@ export function Enforcement() {
       <div className="wrap">
         <div className="band-head">
           <div data-reveal>
-            <span className="index">02 Trust boundary</span>
+            <span className="index">03 Trust boundary</span>
             <h2>What is trustless, and what is merely bonded.</h2>
           </div>
           <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>
