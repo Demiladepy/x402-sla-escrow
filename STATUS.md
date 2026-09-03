@@ -315,14 +315,14 @@ npm run rehearse:sepolia
 | Settle | `0x6ddd02e0d5762b82769d1f476d75bd7f9edd2d8c76e771ba875834f1c9da8794` (1 call) |
 | Tag | verified — `x402_sla`, `celo_5ffb6e9c75fb` |
 
-Mainnet session is the same with `TOKEN=0x765DE816845861e75A25fCA122bb6898B8B1282a` and
+Mainnet session is the same with `TOKEN=0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771` (USAT) and
 `npm run settle:mainnet -- --dry-run` then `--broadcast`. Defaults to dry-run.
 Do not run `serve.ts` against mainnet.
 
 Env block for that sitting:
 
 ```
-TOKEN=0x765DE816845861e75A25fCA122bb6898B8B1282a
+TOKEN=0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771
 CELO_RPC_URL=https://forno.celo.org
 CELO_ATTRIBUTION_TAG=celo_5ffb6e9c75fb
 ATTRIBUTION_CODE=x402_sla
@@ -352,14 +352,14 @@ Record the video against the Vercel URL in that order. Close on agent 9807 and t
 
 | Blocker | Needs |
 |---|---|
-| Mainnet cUSD | Agent `0x922184A4702f0DF95fB86C3879BC3eD935b75721` holds **0 cUSD** on chain 42220 (0.36 CELO). Send $5–10, then `npm run agent:balance -- mainnet` and `npm run settle:mainnet -- --broadcast`. |
+| Mainnet stablecoin | Celo will not send cUSD. [Lena, 3 Sep](https://t.me/realworldagentshackathon/2747): bridge via Squid, or claim ~5 USAT from the [Self / Google Cloud faucet](https://cloud.google.com/application/web3/faucet/celo/mainnet). Agent `0x9221…` still holds 0 stablecoin on 42220 (0.36 CELO). Once USAT lands: set `TOKEN=0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771`, `npm run agent:balance -- mainnet`, then `npm run settle:mainnet -- --dry-run`. |
 | Buyer feedback | Buyer key generated: `0xC10E4E1fBf1A32DCF56433cD83012784593cfd24`. Needs a little mainnet CELO, then `npm run agent:feedback`. `supportedTrust` stays empty until that write lands. |
-| Public URL | [https://web-one-drab-31.vercel.app/](https://web-one-drab-31.vercel.app/). Celo asked us to hold mainnet spend while they fix a bug. |
+| Public URL | [https://web-one-drab-31.vercel.app/](https://web-one-drab-31.vercel.app/). |
 | Publishing | `SOCIAL_LINK` (X post tagging @CeloDevs and @Celo), `OWN_CONTRACTS` after the mainnet settle, then `npm run hack:publish -- --publish` before 14 Sep 09:00 UTC. |
 
 ## Not done deliberately
 
-- No mainnet deploy yet: the wallet still holds 0 cUSD. Sepolia is rehearsal only.
+- No mainnet deploy yet: the wallet still holds 0 USAT and 0 cUSD. Sepolia is rehearsal only.
 - Submission is a draft, not published. Drafts appear on the leaderboard flagged
   ineligible; publishing needs the X post and is a deliberate, later step.
 - `supportedTrust` is empty. The give-feedback script is ready (`BUYER_PRIVATE_KEY`)

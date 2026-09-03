@@ -1,8 +1,9 @@
 /**
  * The 8 Sep mainnet session: two calls, one tagged settlement.
  *
- * Refuses to broadcast unless --broadcast is passed, TOKEN is mainnet cUSD,
- * chain id is 42220, and the wallet holds cUSD. Do not point serve.ts here.
+ * Refuses to broadcast unless --broadcast is passed, TOKEN is a known mainnet
+ * stablecoin (USAT or cUSD), chain id is 42220, and the wallet holds that token.
+ * Do not point serve.ts here.
  *
  *   npm run settle:mainnet -- --dry-run
  *   npm run settle:mainnet -- --broadcast
@@ -33,6 +34,7 @@ import { artifact } from "./chain.js";
 const PORT = 4023;
 const MAX_LATENCY_MS = 800;
 const CUSD = "0x765DE816845861e75A25fCA122bb6898B8B1282a" as Address;
+const USAT = "0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771" as Address;
 
 function required(name: string): string {
   const v = process.env[name];
@@ -43,9 +45,10 @@ function required(name: string): string {
 async function main() {
   const dryRun = process.argv.includes("--dry-run") || !process.argv.includes("--broadcast");
   const net = NETWORKS.mainnet;
-  const token = (process.env.TOKEN ?? CUSD) as Address;
-  if (token.toLowerCase() !== CUSD.toLowerCase()) {
-    throw new Error(`mainnet settlement asset is cUSD ${CUSD}, not ${token}.`);
+  const token = (process.env.TOKEN ?? USAT) as Address;
+  const allowed = [USAT, CUSD];
+  if (!allowed.some((a) => a.toLowerCase() === token.toLowerCase())) {
+    throw new Error(`mainnet TOKEN must be USAT ${USAT} or cUSD ${CUSD}, not ${token}.`);
   }
   const asset = assertTokenOnChain(net, token);
 
@@ -86,7 +89,7 @@ async function main() {
   }
   if (tokenBal < needed) {
     throw new Error(
-      `cUSD is ${formatUnits(tokenBal, asset.decimals)}. Send $5–10 to ${account.address} on chain 42220, then re-run.`,
+      `Need ${formatUnits(needed, asset.decimals)} ${asset.symbol} on ${account.address} (chain 42220). Claim USAT from the Google Cloud / Self faucet, or bridge via Squid, then re-run.`,
     );
   }
   if (celoBal < parseUnits("0.15", 18)) {

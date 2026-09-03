@@ -43,6 +43,7 @@ const NETWORKS: Network[] = [
     rpcUrl: process.env.CELO_RPC_URL,
     tokens: [
       { symbol: "cUSD", address: "0x765DE816845861e75A25fCA122bb6898B8B1282a", decimals: 18 },
+      { symbol: "USAT", address: "0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771", decimals: 6 },
       { symbol: "USDC", address: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C", decimals: 6 },
       { symbol: "USDT", address: "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e", decimals: 6 },
       { symbol: "NGNm", address: "0xE2702Bd97ee33c88c8f6f92DA3B733608aa76F71", decimals: 18 },
@@ -102,10 +103,13 @@ async function report(net: Network, address: Address) {
   if (!funded) console.log("  (empty)");
 
   if (net.key === "mainnet") {
+    const usat = balances[net.tokens.findIndex((t) => t.symbol === "USAT")];
     const cusd = balances[net.tokens.findIndex((t) => t.symbol === "cUSD")];
-    if (cusd === 0n || cusd === null) {
-      console.log("  NOT FUNDED: send $5–10 cUSD to this address on chain 42220.");
-    } else {
+    if ((usat === 0n || usat === null) && (cusd === 0n || cusd === null)) {
+      console.log("  NOT FUNDED: claim ~5 USAT via the Self / Google Cloud faucet, send to this address on chain 42220.");
+    } else if (usat && usat > 0n) {
+      console.log(`  USAT funded: ${formatUnits(usat, 6)}`);
+    } else if (cusd && cusd > 0n) {
       console.log(`  cUSD funded: ${formatUnits(cusd, 18)}`);
     }
   }
