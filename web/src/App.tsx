@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { Atmosphere } from "./components/Atmosphere";
 import { Call } from "./components/Call";
 import { Dashboard } from "./components/Dashboard";
 import { Enforcement } from "./components/Enforcement";
@@ -42,66 +41,62 @@ export default function App() {
   }, [scene, settled]);
 
   return (
-    <>
-      <Atmosphere />
+    <div className="page">
+      <header className="masthead">
+        <div className="wrap masthead-inner">
+          <a className="wordmark" href={APP_DOMAIN || "/"} aria-label="SLA-escrowed x402">
+            <Mark size={32} />
+            SLA-escrowed <span>x402</span>
+          </a>
+          <nav>
+            <InPage href="#call">Call</InPage>
+            <InPage href="#healthy">Healthy</InPage>
+            <InPage href="#breach">Breach</InPage>
+            <InPage href="#agent">Agent</InPage>
+          </nav>
+          <span className="live">
+            <span
+              className={`dot${
+                fresh ? "" : source === "recorded" ? " recorded" : settled ? " stale" : " waiting"
+              }`}
+            />
+            {fresh ? "live" : source === "recorded" ? "recorded" : settled ? "offline" : "connecting"}
+          </span>
+        </div>
+      </header>
 
-      <div className="page">
-        <header className="masthead">
-          <div className="wrap masthead-inner">
-            <a className="wordmark" href={APP_DOMAIN || "/"} aria-label="SLA-escrowed x402">
-              <Mark size={32} />
-              SLA-escrowed <span>x402</span>
-            </a>
-            <nav>
-              <InPage href="#call">Call</InPage>
-              <InPage href="#healthy">Healthy</InPage>
-              <InPage href="#breach">Breach</InPage>
-              <InPage href="#agent">Agent</InPage>
-            </nav>
-            <span className="live">
-              <span
-                className={`dot${
-                  fresh ? "" : source === "recorded" ? " recorded" : settled ? " stale" : " waiting"
-                }`}
-              />
-              {fresh ? "live" : source === "recorded" ? "recorded" : settled ? "offline" : "connecting"}
-            </span>
-          </div>
-        </header>
+      <main>
+        <Hero state={state} callCount={rows.length} settled={settled} source={source} />
+        <Call />
+        <Mechanism />
+        <Enforcement />
+        <Dashboard
+          rows={rows}
+          state={state}
+          system={system}
+          error={error}
+          settled={settled}
+          scene={scene}
+          source={source}
+        />
+        <Identity />
+      </main>
 
-        <main>
-          <Hero state={state} callCount={rows.length} settled={settled} source={source} />
-          <Call />
-          <Mechanism />
-          <Enforcement />
-          <Dashboard
-            rows={rows}
-            state={state}
-            system={system}
-            error={error}
-            settled={settled}
-            scene={scene}
-            source={source}
-          />
-          <Identity />
-        </main>
-
-        <footer className="foot">
-          <div className="wrap foot-inner">
-            <span className="foot-brand">
-              <Mark size={22} />
-              Built on Celo. Paid per call.
-            </span>
-            <span className="foot-links">
-              <a href={AGENT.url}>agent 9807</a>
-              {APP_DOMAIN ? (
-                <a href={APP_DOMAIN}>{APP_DOMAIN.replace(/^https:\/\//, "")}</a>
-              ) : null}
-              <a href={AGENT.repo}>github.com/Demiladepy/x402-sla-escrow</a>
-            </span>
-          </div>
-        </footer>
-      </div>
-    </>
+      <footer className="foot">
+        <div className="wrap foot-inner">
+          <span className="foot-brand">
+            <Mark size={22} />
+            Built on Celo. Paid per call.
+          </span>
+          <span className="foot-links">
+            <a href={AGENT.url}>agent 9807</a>
+            {APP_DOMAIN ? (
+              <a href={APP_DOMAIN}>{APP_DOMAIN.replace(/^https:\/\//, "")}</a>
+            ) : null}
+            <a href={AGENT.repo}>github.com/Demiladepy/x402-sla-escrow</a>
+          </span>
+        </div>
+      </footer>
+    </div>
   );
 }

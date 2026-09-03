@@ -67,10 +67,9 @@ function registerEffects() {
 }
 
 function onVisibility() {
-  // Sleeping the ticker stops the ambient field as well as in-flight tweens.
-  // Leaving it running in a background tab would keep interpolating a scene
-  // nobody can see, and waking it without lagSmoothing would jump several
-  // seconds in one frame.
+  // Sleeping the ticker stops in-flight tweens. Leaving it running in a
+  // background tab would keep interpolating a scene nobody can see, and
+  // waking it without lagSmoothing would jump several seconds in one frame.
   if (document.hidden) {
     gsap.ticker.sleep();
     gsap.globalTimeline.pause();

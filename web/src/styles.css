@@ -1,20 +1,18 @@
 /*
- * SLA-escrowed x402 — dark, cinematic, one accent.
+ * SLA-escrowed x402 — black field, one accent.
  *
- * Neutrals are tinted toward Celo's yellow hue (~110) at very low chroma, so
- * the brand colour and the surfaces feel related rather than pasted together.
- * The accent is spent only on the number being proven and on a breach's
- * counterpart; everywhere else is neutral on purpose.
+ * The page background is flat black. Surfaces sit a step above it so cards
+ * still read. The accent is spent only on the number being proven and on a
+ * breach's counterpart.
  */
 
 :root {
-  /* Surfaces — near-black, never pure black. */
-  --void: oklch(0.108 0.009 110);
-  --bg: oklch(0.145 0.011 110);
-  --surface: oklch(0.196 0.013 110);
-  --surface-high: oklch(0.243 0.014 110);
-  --line: oklch(0.3 0.014 110);
-  --line-soft: oklch(0.24 0.012 110);
+  --void: #000000;
+  --bg: #000000;
+  --surface: #111111;
+  --surface-high: #1a1a1a;
+  --line: #2a2a2a;
+  --line-soft: #1c1c1c;
 
   /* Type */
   --text: oklch(0.965 0.008 110);
@@ -66,6 +64,7 @@ html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
   font-synthesis: none;
+  background: #000000;
 }
 
 body {
@@ -110,56 +109,6 @@ a:hover {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 2px;
-}
-
-/* ── Ambient background ──────────────────────────────────────────────────
-   Two fields of light driven from gsap.ticker (see Atmosphere.tsx).
-   Transform only, so this never costs layout. It sits behind everything
-   and is the only thing on the page allowed to move on its own. */
-
-.ambient {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.ambient-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  will-change: transform;
-}
-
-.ambient-blob.a {
-  width: 62vw;
-  height: 62vw;
-  top: -22vw;
-  left: -12vw;
-  background: radial-gradient(circle, oklch(0.5 0.09 110 / 0.28), transparent 68%);
-}
-
-.ambient-blob.b {
-  width: 48vw;
-  height: 48vw;
-  top: 34vh;
-  right: -16vw;
-  background: radial-gradient(circle, oklch(0.42 0.06 150 / 0.22), transparent 70%);
-}
-
-/* A faint ruled field, so the dark has structure instead of being flat. */
-.grid-field {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  will-change: transform;
-  background-image:
-    linear-gradient(to right, oklch(0.3 0.014 110 / 0.35) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(0.3 0.014 110 / 0.35) 1px, transparent 1px);
-  background-size: 96px 96px;
-  mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black, transparent 78%);
 }
 
 .page {
@@ -211,8 +160,7 @@ a:hover {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: color-mix(in oklab, var(--bg) 82%, transparent);
-  backdrop-filter: blur(14px);
+  background: #000000;
   border-bottom: 1px solid var(--line-soft);
 }
 
