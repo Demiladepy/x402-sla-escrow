@@ -145,9 +145,12 @@ a:hover {
   opacity: 0;
 }
 
-.js-motion .hero-draw [data-node],
-.js-motion .hero-draw [data-label],
-.js-motion .hero-draw [data-packet] {
+.js-motion .hero-draw [data-packet],
+.js-motion .hero-draw [data-ok-bit],
+.js-motion .hero-draw [data-bad-bit],
+.js-motion .hero-draw [data-pen],
+.js-motion .hero-draw [data-miss],
+.js-motion .hero-draw [data-check] {
   opacity: 0;
 }
 
@@ -280,11 +283,11 @@ a:hover {
 /* ── Hero ─────────────────────────────────────────────────────────────── */
 
 .hero {
-  padding: clamp(var(--space-2xl), 11vh, var(--space-4xl)) 0
-    clamp(var(--space-2xl), 9vh, var(--space-3xl));
+  padding: clamp(var(--space-lg), 6vh, var(--space-3xl)) 0
+    clamp(var(--space-lg), 6vh, var(--space-2xl));
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-xl);
+  gap: var(--space-md);
   align-items: center;
 }
 
@@ -299,7 +302,7 @@ a:hover {
 
 .hero-draw {
   width: 100%;
-  max-width: 560px;
+  max-width: 500px;
   height: auto;
   justify-self: center;
   overflow: visible;
@@ -321,10 +324,11 @@ a:hover {
 }
 
 .hero h1 {
-  font-size: clamp(2.5rem, 7.4vw, 5.75rem);
+  font-size: clamp(2rem, 5vw, 3.75rem);
   font-weight: 400;
   max-width: 14ch;
   letter-spacing: -0.015em;
+  line-height: 1.08;
 }
 
 .hero .lede {
@@ -341,11 +345,11 @@ a:hover {
 }
 
 .hero-foot {
-  margin-top: clamp(var(--space-xl), 6vh, var(--space-2xl));
+  margin-top: clamp(var(--space-md), 4vh, var(--space-xl));
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: var(--space-xl);
+  gap: var(--space-md);
 }
 
 /* The one number the whole argument rests on. Typographic, not a card. */
@@ -365,12 +369,12 @@ a:hover {
 }
 
 .claim-line {
-  font-family: var(--display);
-  font-size: clamp(1.5rem, 2.8vw, 2.125rem);
+  font-family: var(--body);
+  font-size: 0.8125rem;
   font-weight: 400;
-  line-height: 1.12;
-  letter-spacing: -0.015em;
-  color: var(--text-dim);
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: var(--text-muted);
   text-wrap: pretty;
 }
 
@@ -383,10 +387,10 @@ a:hover {
 
 .claim-line.pending {
   font-family: var(--body);
-  font-size: 1rem;
+  font-size: 0.8125rem;
   font-weight: 400;
-  line-height: 1.6;
-  color: var(--text-muted);
+  line-height: 1.5;
+  color: var(--text-faint);
   letter-spacing: 0;
 }
 
