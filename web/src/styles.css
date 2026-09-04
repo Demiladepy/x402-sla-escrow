@@ -145,6 +145,12 @@ a:hover {
   opacity: 0;
 }
 
+.js-motion .hero-draw [data-node],
+.js-motion .hero-draw [data-label],
+.js-motion .hero-draw [data-packet] {
+  opacity: 0;
+}
+
 /* SplitText's mask wrappers; the line rides out from behind its own measure. */
 .hero-line {
   will-change: transform;
@@ -276,6 +282,33 @@ a:hover {
 .hero {
   padding: clamp(var(--space-2xl), 11vh, var(--space-4xl)) 0
     clamp(var(--space-2xl), 9vh, var(--space-3xl));
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+  align-items: center;
+}
+
+@media (min-width: 960px) {
+  .hero {
+    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 1fr);
+    column-gap: var(--space-lg);
+    min-height: calc(100svh - 96px);
+    padding-top: clamp(var(--space-xl), 8vh, var(--space-3xl));
+  }
+}
+
+.hero-draw {
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  justify-self: center;
+  overflow: visible;
+}
+
+@media (min-width: 960px) {
+  .hero-draw {
+    justify-self: end;
+  }
 }
 
 .eyebrow {

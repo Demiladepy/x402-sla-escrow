@@ -10,6 +10,7 @@ import {
 } from "../lib/motion";
 import type { LedgerSource } from "../lib/useLedger";
 import type { State } from "../lib/types";
+import { HeroDraw } from "./HeroDraw";
 import { Num } from "./Num";
 
 interface Props {
@@ -113,60 +114,64 @@ export function Hero({ state, callCount, settled, source }: Props) {
 
   return (
     <section className="hero wrap" ref={root}>
-      <span className="eyebrow" data-hero>
-        Celo · paid HTTP · stablecoin
-      </span>
+      <div className="hero-copy">
+        <span className="eyebrow" data-hero>
+          Celo · paid HTTP · stablecoin
+        </span>
 
-      <h1 data-hero-heading>Serving slowly is serving for free.</h1>
+        <h1 data-hero-heading>Serving slowly is serving for free.</h1>
 
-      <p className="lede" data-hero>
-        An agent pays per API call. If the response misses the latency budget or returns the wrong
-        status, <strong>the money never moves</strong>. The escrow re-checks the SLA itself and
-        reverts. There is nothing to refund and no dispute to open.
-      </p>
+        <p className="lede" data-hero>
+          An agent pays per API call. If the response misses the latency budget or returns the wrong
+          status, <strong>the money never moves</strong>. The escrow re-checks the SLA itself and
+          reverts. There is nothing to refund and no dispute to open.
+        </p>
 
-      <div className="hero-foot">
-        <div className="claim" data-hero>
-          {source === "recorded" ? (
-            <p className="claim-line">
-              One paid call settled on Celo Sepolia. One breach charged nothing. The buyer signed
-              off-chain.
-            </p>
-          ) : buyerTxs === null ? (
-            <p className="claim-line pending">
-              {settled
-                ? "The live figures on this page come from a running instance. Start it with npm run serve --workspace demo."
-                : "Reading the buyer's transaction count from the chain…"}
-            </p>
-          ) : (
-            <p className="claim-line">
-              The buyer has sent <em>{buyerTxs}</em> transactions since its deposit, across{" "}
-              <em>
-                <Num value={callCount} />
-              </em>{" "}
-              paid calls.
-            </p>
-          )}
-          <span className="claim-note">
-            Authorizations are signed off-chain. Paying costs the buyer no gas and no transaction.
-          </span>
+        <div className="hero-foot">
+          <div className="claim" data-hero>
+            {source === "recorded" ? (
+              <p className="claim-line">
+                One paid call settled on Celo Sepolia. One breach charged nothing. The buyer signed
+                off-chain.
+              </p>
+            ) : buyerTxs === null ? (
+              <p className="claim-line pending">
+                {settled
+                  ? "The live figures on this page come from a running instance. Start it with npm run serve --workspace demo."
+                  : "Reading the buyer's transaction count from the chain…"}
+              </p>
+            ) : (
+              <p className="claim-line">
+                The buyer has sent <em>{buyerTxs}</em> transactions since its deposit, across{" "}
+                <em>
+                  <Num value={callCount} />
+                </em>{" "}
+                paid calls.
+              </p>
+            )}
+            <span className="claim-note">
+              Authorizations are signed off-chain. Paying costs the buyer no gas and no transaction.
+            </span>
+          </div>
+
+          <a
+            className="jump"
+            href="#call"
+            data-hero
+            onClick={(event) => {
+              event.preventDefault();
+              scrollToId("#call");
+            }}
+          >
+            See how an agent calls it
+            <span className="arrow" aria-hidden="true">
+              ↓
+            </span>
+          </a>
         </div>
-
-        <a
-          className="jump"
-          href="#call"
-          data-hero
-          onClick={(event) => {
-            event.preventDefault();
-            scrollToId("#call");
-          }}
-        >
-          See how an agent calls it
-          <span className="arrow" aria-hidden="true">
-            ↓
-          </span>
-        </a>
       </div>
+
+      <HeroDraw />
     </section>
   );
 }
