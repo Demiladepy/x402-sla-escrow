@@ -7,15 +7,24 @@ import { Identity } from "./components/Identity";
 import { Mark } from "./components/Mark";
 import { Mechanism } from "./components/Mechanism";
 import { scrollToId } from "./lib/motion";
-import { useHashScene } from "./lib/useHash";
+import { useHashScene, usePageHash } from "./lib/useHash";
 import { useLedger } from "./lib/useLedger";
 import { useReveal } from "./lib/useReveal";
 import { AGENT, APP_DOMAIN } from "./lib/site";
 
-function InPage({ href, children }: { href: `#${string}`; children: string }) {
+function InPage({
+  href,
+  children,
+  current,
+}: {
+  href: `#${string}`;
+  children: string;
+  current?: boolean;
+}) {
   return (
     <a
       href={href}
+      aria-current={current ? "page" : undefined}
       onClick={(event) => {
         event.preventDefault();
         if (window.location.hash !== href) window.location.hash = href;
@@ -30,15 +39,18 @@ function InPage({ href, children }: { href: `#${string}`; children: string }) {
 export default function App() {
   const { rows, state, system, error, fresh, settled, source } = useLedger();
   const scene = useHashScene();
+  const hash = usePageHash();
   // Re-bind when live sections appear: SystemPanel and the ledger are not in
   // the first paint, and a one-shot query would leave them permanently hidden.
   useReveal([settled, rows.length > 0, Boolean(system)]);
 
   useEffect(() => {
-    if (!scene || !settled) return;
-    const t = window.setTimeout(() => scrollToId(`#${scene}`), 80);
+    if (!settled) return;
+    const id = hash.replace(/^#/, "");
+    if (!id || !document.getElementById(id)) return;
+    const t = window.setTimeout(() => scrollToId(`#${id}`), 80);
     return () => window.clearTimeout(t);
-  }, [scene, settled]);
+  }, [hash, settled]);
 
   return (
     <div className="page">
@@ -49,10 +61,18 @@ export default function App() {
             SLA-escrowed <span>x402</span>
           </a>
           <nav>
-            <InPage href="#call">Call</InPage>
-            <InPage href="#healthy">Healthy</InPage>
-            <InPage href="#breach">Breach</InPage>
-            <InPage href="#agent">Agent</InPage>
+            <InPage href="#call" current={hash === "#call"}>
+              Call
+            </InPage>
+            <InPage href="#healthy" current={hash === "#healthy"}>
+              Healthy
+            </InPage>
+            <InPage href="#breach" current={hash === "#breach"}>
+              Breach
+            </InPage>
+            <InPage href="#agent" current={hash === "#agent"}>
+              Agent
+            </InPage>
           </nav>
           <span className="live">
             <span

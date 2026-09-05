@@ -1,6 +1,6 @@
 import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import { serveRate } from "../api/_lib/rateHandler";
+import { serveRate } from "./server/rateHandler";
 
 function publicRate(): Plugin {
   return {

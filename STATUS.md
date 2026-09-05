@@ -333,7 +333,7 @@ FEE_CURRENCY=   # unset — pay gas in CELO
 
 The public site is [web-one-drab-31.vercel.app](https://web-one-drab-31.vercel.app/). Do not create a second Vercel project. `appDomain` on the draft is that URL.
 
-`GET /api/rate` is the public Call playground: 402 without `X-PAYMENT`, a seller-signed receipt with it, HTTP 500 or a late 200 when `mode` says so. The page signs an ephemeral PaymentAuth. Nothing from that form is settled. The ledger still shows the **Celo Sepolia rehearsal** when no demo seller is reachable (escrow `0x0d58…abca`, settle `0x6ddd…8794`). Judge scenes `#healthy` `#breach` `#settle` `#system` work on that snapshot. A live seller at `VITE_SELLER_URL` replaces the ledger.
+`GET /api/rate` is the public Call playground: 402 without `X-PAYMENT`, a seller-signed receipt with it, HTTP 500 or a late 200 when `mode` says so. Served from `web/api/rate.ts` (and the repo-root `api/rate.ts`) so Vercel finds it whether the project root is the repo or `web/`. The page signs an ephemeral PaymentAuth. Nothing from that form is settled. The ledger still shows the **Celo Sepolia rehearsal** when no demo seller is reachable (escrow `0x0d58…abca`, settle `0x6ddd…8794`). Judge scenes `#healthy` `#breach` `#settle` `#system` work on that snapshot. A live seller at `VITE_SELLER_URL` replaces the ledger.
 
 Local `vite` still proxies `/api` to `127.0.0.1:4021`. `#settle` can also show baked-in mainnet hashes via `VITE_MAINNET_ESCROW` / `VITE_MAINNET_SETTLE_TX`.
 

@@ -33,31 +33,23 @@ const STEPS = [
 export function Mechanism() {
   const flow = useRef<HTMLDivElement>(null);
 
-  /**
-   * A rule that draws through the steps as the section is scrolled.
-   *
-   * Scrubbed rather than played: the protocol is a sequence, and tying its
-   * progress to the reader's own position is the one place scroll-linked motion
-   * says something the static layout cannot. It draws only — nothing is pinned
-   * and no scrolling is hijacked.
-   */
   useLayoutEffect(() => {
     const el = flow.current;
     if (!el || reducedMotion()) return;
 
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        ".flow-rule",
-        { scaleX: 0 },
+        ".spine-rule",
+        { scaleY: 0 },
         {
-          scaleX: 1,
+          scaleY: 1,
           ease: "none",
-          transformOrigin: "0% 50%",
+          transformOrigin: "50% 0%",
           scrollTrigger: {
             trigger: el,
             start: "top 78%",
-            end: "bottom 62%",
-            scrub: 0.6,
+            end: "bottom 55%",
+            scrub: 0.55,
           },
         },
       );
@@ -87,18 +79,20 @@ export function Mechanism() {
           </div>
         </div>
 
-        <div className="flow" ref={flow}>
-          <span className="flow-rule" aria-hidden="true" />
+        <div className="spine" ref={flow}>
+          <span className="spine-rule" aria-hidden="true" />
           {STEPS.map((s, i) => (
             <article
               key={s.n}
-              className={`step${s.pivot ? " pivot" : ""}`}
+              className={`spine-step${s.pivot ? " pivot" : ""}`}
               data-reveal
               style={{ "--i": i } as React.CSSProperties}
             >
-              <span className="step-n">{s.n}</span>
-              <h3>{s.title}</h3>
-              <p>{s.body}</p>
+              <span className="spine-n">{s.n}</span>
+              <div>
+                <h3>{s.title}</h3>
+                <p>{s.body}</p>
+              </div>
             </article>
           ))}
         </div>

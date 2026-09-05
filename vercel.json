@@ -2,5 +2,12 @@
   "buildCommand": "npm run build --workspace web",
   "outputDirectory": "web/dist",
   "framework": null,
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "functions": {
+    "api/rate.ts": { "maxDuration": 10 },
+    "web/api/rate.ts": { "maxDuration": 10 }
+  },
+  "rewrites": [
+    { "source": "/api/rate", "destination": "/api/rate" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }

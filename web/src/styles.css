@@ -223,6 +223,10 @@ a:hover {
   color: var(--text);
 }
 
+.masthead nav a[aria-current="page"] {
+  color: var(--text);
+}
+
 @media (max-width: 720px) {
   .masthead nav {
     order: 3;
@@ -450,7 +454,7 @@ a:hover {
 }
 
 .band-head h2 {
-  font-size: clamp(1.75rem, 4vw, 3rem);
+  font-size: clamp(1.5rem, 3.2vw, 2.25rem);
   max-width: 20ch;
 }
 
@@ -464,118 +468,78 @@ a:hover {
   margin-top: var(--space-sm);
 }
 
-.call-grid {
-  margin-top: var(--space-2xl);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-sm);
-}
-
-.call-card {
+.call-deck {
+  margin-top: var(--space-xl);
   padding: var(--space-md);
-  background: var(--surface);
-  border: 1px solid var(--line-soft);
+  background: #0a0a0a;
+  border: 1px solid var(--line);
   border-radius: var(--radius);
 }
 
-.call-card h3 {
-  font-size: 1.0625rem;
-  margin-bottom: var(--space-xs);
-}
-
-.call-card p {
-  color: var(--text-dim);
-  font-size: 0.9375rem;
+.call-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-sm) var(--space-lg);
 }
 
 .call-pairs {
-  margin: 0 0 var(--space-sm);
-  padding: 0;
-  list-style: none;
+  margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2xs);
-}
-
-.call-pairs li {
-  display: inline-flex;
-}
-
-.call-code {
-  margin: var(--space-sm) 0 0;
-  padding: var(--space-sm);
-  background: var(--void);
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  line-height: 1.55;
-  color: var(--text-dim);
-  overflow-x: auto;
-  white-space: pre-wrap;
-}
-
-.call-stage {
-  margin-top: var(--space-2xl);
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
-  gap: var(--space-sm);
+  gap: 6px;
 }
 
 .call-terms {
-  margin: var(--space-sm) 0 0;
+  margin: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-xs);
+  grid-template-columns: repeat(3, minmax(4.5rem, auto));
+  gap: var(--space-sm) var(--space-md);
 }
 
 .call-terms dt {
   font-size: 0.625rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
 
 .call-terms dd {
-  margin: 4px 0 0;
-  font-size: 0.9375rem;
+  margin: 3px 0 0;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
 }
 
 .call-pair {
   font: inherit;
-  padding: 4px 9px;
+  padding: 5px 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--text-dim);
+  color: var(--text-muted);
   cursor: pointer;
   letter-spacing: 0.02em;
+  font-size: 0.8125rem;
 }
 
 .call-pair.on {
-  border-color: var(--accent);
+  border-color: var(--accent-dim);
   color: var(--accent);
 }
 
 .call-pair:disabled {
   cursor: default;
-  opacity: 0.6;
-}
-
-.call-run {
-  padding: var(--space-md);
-  background: var(--void);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.call-run h3 {
-  font-size: 1.0625rem;
-  margin-bottom: var(--space-sm);
+  opacity: 0.55;
 }
 
 .call-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2xs);
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--space-md);
 }
 
 .call-btn {
@@ -583,47 +547,72 @@ a:hover {
   padding: 8px 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--surface);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.call-btn.primary {
+  border-color: var(--accent-dim);
+  color: var(--accent);
 }
 
 .call-btn:hover:not(:disabled) {
   border-color: var(--text-muted);
 }
 
+.call-btn.primary:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
 .call-btn:disabled {
   cursor: default;
-  opacity: 0.55;
+  opacity: 0.5;
+}
+
+.call-phase {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
 
 .call-wait {
-  margin-top: var(--space-md);
-  color: var(--text-muted);
-  font-size: 0.9375rem;
+  margin-top: var(--space-sm);
+  color: var(--text-faint);
+  font-size: 0.8125rem;
 }
 
 .call-log {
   margin: var(--space-md) 0 0;
-  padding: 0;
+  padding: var(--space-sm) 0 0;
+  border-top: 1px solid var(--line-soft);
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+}
+
+.call-log.ghost {
+  opacity: 0.38;
 }
 
 .call-log li {
   display: grid;
-  grid-template-columns: 7.5rem minmax(0, 1fr);
+  grid-template-columns: 6.75rem minmax(0, 1fr);
   gap: var(--space-xs);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
 .call-k {
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
   color: var(--text-faint);
+  padding-top: 2px;
 }
 
 .call-v {
@@ -640,9 +629,57 @@ a:hover {
   color: var(--breach);
 }
 
-.call-verdict {
+.call-meter {
   margin-top: var(--space-md);
-  font-size: 1.0625rem;
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr) 3.5rem;
+  gap: var(--space-xs);
+  align-items: center;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.call-meter-track {
+  position: relative;
+  height: 2px;
+  background: #1f1f1f;
+}
+
+.call-meter-track i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--text-faint);
+}
+
+.call-meter.ok .call-meter-track i {
+  background: var(--accent);
+}
+
+.call-meter.bad .call-meter-track i {
+  background: var(--breach);
+}
+
+.call-meter-track b {
+  position: absolute;
+  right: 0;
+  top: -3px;
+  width: 1px;
+  height: 8px;
+  background: var(--accent-dim);
+}
+
+.call-meter-ms,
+.call-meter-cap {
+  font-variant-numeric: tabular-nums;
+}
+
+.call-verdict {
+  margin-top: var(--space-sm);
+  font-size: 0.9375rem;
 }
 
 .call-verdict.ok {
@@ -651,12 +688,6 @@ a:hover {
 
 .call-verdict.bad {
   color: var(--breach);
-}
-
-@media (max-width: 800px) {
-  .call-stage {
-    grid-template-columns: 1fr;
-  }
 }
 
 .identity-inner {
@@ -781,71 +812,77 @@ a:hover {
   margin-bottom: var(--space-sm);
 }
 
-/* ── Flow ─────────────────────────────────────────────────────────────── */
+/* ── Mechanism spine ──────────────────────────────────────────────────── */
 
-.flow {
+.spine {
   position: relative;
-  margin-top: var(--space-2xl);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 1px;
-  background: var(--line-soft);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  overflow: hidden;
+  margin-top: var(--space-xl);
+  max-width: 52rem;
+  padding-left: 1.25rem;
 }
 
-/*
- * Drawn across the top edge as the section scrolls, so the sequence of steps
- * has a direction. Positioned out of the grid rather than given a cell, and
- * inert to pointers — it is punctuation, not a control.
- */
-.flow-rule {
+.spine-rule {
   position: absolute;
-  top: -1px;
   left: 0;
-  width: 100%;
-  height: 2px;
+  top: 0.85rem;
+  bottom: 0.4rem;
+  width: 1px;
   background: var(--accent);
-  transform-origin: 0 50%;
+  transform-origin: 50% 0%;
   pointer-events: none;
-  z-index: 1;
 }
 
-.step {
-  background: var(--bg);
-  padding: var(--space-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2xs);
-  min-height: 168px;
+.spine-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: var(--space-sm);
+  padding: 0 0 var(--space-lg);
 }
 
-.step-n {
-  font-family: var(--display);
+.spine-step:last-child {
+  padding-bottom: 0;
+}
+
+.spine-step::before {
+  content: "";
+  position: absolute;
+  left: -1.25rem;
+  top: 0.55rem;
+  width: 7px;
+  height: 7px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: #2a2a2a;
+  box-shadow: 0 0 0 3px var(--bg);
+}
+
+.spine-step.pivot::before {
+  background: var(--accent);
+}
+
+.spine-n {
   font-size: 0.6875rem;
-  font-weight: 400;
   letter-spacing: 0.14em;
   color: var(--text-faint);
+  padding-top: 0.2rem;
 }
 
-.step h3 {
-  font-size: 1.0625rem;
+.spine-step h3 {
+  font-size: 1.125rem;
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
 
-.step p {
-  font-size: 0.875rem;
+.spine-step p {
+  margin-top: 6px;
+  font-size: 0.9375rem;
   color: var(--text-muted);
   line-height: 1.55;
+  max-width: 58ch;
 }
 
-.step.pivot {
-  background: var(--surface);
-}
-
-.step.pivot h3 {
+.spine-step.pivot h3 {
   color: var(--accent);
 }
 
