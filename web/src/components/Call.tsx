@@ -1,12 +1,7 @@
 import { useState } from "react";
+import { signPayment, type PaymentRequired } from "../lib/playgroundPay";
 
-const RATES: Record<string, number> = {
-  "CUSD/NGN": 1587.42,
-  "CUSD/KES": 129.18,
-  "CUSD/GHS": 15.63,
-};
-
-const PAIRS = Object.keys(RATES);
+const PAIRS = ["CUSD/NGN", "CUSD/KES", "CUSD/GHS"];
 const BUDGET_MS = 800;
 
 type Mode = "healthy" | "broken" | "slow";
@@ -17,7 +12,12 @@ interface Step {
   kind?: "ok" | "bad" | "dim";
 }
 
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+function ratePath(pair: string, mode: Mode) {
+  const q = new URLSearchParams({ pair });
+  if (mode === "broken") q.set("mode", "broken");
+  if (mode === "slow") q.set("mode", "slow");
+  return `/api/rate?${q}`;
+}
 
 export function Call() {
   const [pair, setPair] = useState(PAIRS[0]);
@@ -37,34 +37,77 @@ export function Call() {
       setSteps([...log]);
     };
 
-    push({ k: "GET", v: `/api/rate?pair=${pair}`, kind: "dim" });
-    await wait(200);
-    push({ k: "402", v: "Payment Required. 0.001. HTTP 200. 800ms." });
-    await wait(240);
-    push({ k: "X-PAYMENT", v: "signed PaymentAuth. Off-chain. No transaction.", kind: "dim" });
+    const path = ratePath(pair, mode);
+    push({ k: "GET", v: path, kind: "dim" });
 
-    if (mode === "broken") {
-      await wait(160);
-      push({ k: "500", v: "upstream rate provider unavailable", kind: "bad" });
-      push({ k: "ack", v: "refused. Charged 0.", kind: "bad" });
+    try {
+      const probe = await fetch(path);
+      const terms = (await probe.json()) as PaymentRequired & { error?: string };
+      if (probe.status !== 402) {
+        push({ k: String(probe.status), v: terms.error ?? "expected 402 Payment Required", kind: "bad" });
+        setPaid(false);
+        setVerdict("The seller did not advertise terms. No payment was signed.");
+        return;
+      }
+      push({
+        k: "402",
+        v: `Payment Required. 0.001 USDC. HTTP ${terms.sla.expectedStatus}. ${terms.sla.maxLatencyMs}ms.`,
+      });
+
+      const payment = await signPayment();
+      push({
+        k: "X-PAYMENT",
+        v: `signed PaymentAuth ${payment.requestId.slice(0, 10)}…. Off-chain. No transaction.`,
+        kind: "dim",
+      });
+
+      const started = Date.now();
+      const res = await fetch(path, { headers: { "x-payment": payment.header } });
+      const observed = Date.now() - started;
+      const raw = await res.text();
+      let body: { pair?: string; rate?: number; error?: string } = {};
+      try {
+        body = JSON.parse(raw) as typeof body;
+      } catch {
+        body = { error: raw };
+      }
+      const receipt = res.headers.get("x-payment-receipt");
+      const overBudget = observed > BUDGET_MS;
+      const badStatus = res.status !== 200;
+
+      if (badStatus) {
+        push({ k: String(res.status), v: body.error ?? raw, kind: "bad" });
+        push({ k: "ack", v: "refused. Charged 0.", kind: "bad" });
+        setPaid(false);
+        setVerdict("The money never moved. There is nothing to refund.");
+      } else if (overBudget) {
+        push({
+          k: "200",
+          v: `${body.pair ?? pair}  ${body.rate ?? ""}  ·  ${observed}ms over an ${BUDGET_MS}ms budget`,
+          kind: "bad",
+        });
+        if (receipt) push({ k: "receipt", v: "seller-signed ServiceReceipt", kind: "dim" });
+        push({ k: "ack", v: "refused. Latency missed. Charged 0.", kind: "bad" });
+        setPaid(false);
+        setVerdict("Late data is free data. The buyer does nothing, and that is the refund.");
+      } else {
+        push({ k: "200", v: `${body.pair}  ${body.rate}  ·  ${observed}ms`, kind: "ok" });
+        push({ k: "receipt", v: "seller-signed ServiceReceipt", kind: "dim" });
+        push({ k: "ack", v: "buyer acknowledged. Queued for the seller to settle.", kind: "ok" });
+        setPaid(true);
+        setVerdict("Charged 0.001. The buyer sent no transaction.");
+      }
+    } catch (err) {
+      push({
+        k: "error",
+        v: err instanceof Error ? err.message : "the public seller did not answer",
+        kind: "bad",
+      });
       setPaid(false);
-      setVerdict("The money never moved. There is nothing to refund.");
-    } else if (mode === "slow") {
-      await wait(920);
-      push({ k: "200", v: `${pair}  ${RATES[pair]}  ·  920ms over an 800ms budget`, kind: "bad" });
-      push({ k: "ack", v: "refused. Latency missed. Charged 0.", kind: "bad" });
-      setPaid(false);
-      setVerdict("Late data is free data. The buyer does nothing, and that is the refund.");
-    } else {
-      await wait(160);
-      push({ k: "200", v: `${pair}  ${RATES[pair]}  ·  18ms`, kind: "ok" });
-      push({ k: "receipt", v: "seller-signed ServiceReceipt", kind: "dim" });
-      push({ k: "ack", v: "buyer acknowledged. Queued for the seller to settle.", kind: "ok" });
-      setPaid(true);
-      setVerdict("Charged 0.001. The buyer sent no transaction.");
+      setVerdict("The call never reached a seller.");
+    } finally {
+      setBusy(false);
     }
-
-    setBusy(false);
   }
 
   return (
@@ -78,8 +121,9 @@ export function Call() {
           <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>
             <p>
               Price is 0.001. The SLA is HTTP 200 inside {BUDGET_MS}ms. Miss either and the buyer
-              does not acknowledge, so the seller is never paid. Press a button. That is the
-              product.
+              does not acknowledge, so the seller is never paid. The buttons hit a live{" "}
+              <code>/api/rate</code>. The page signs. The chain proof is the Sepolia rehearsal
+              below, not this form.
             </p>
           </div>
         </div>
@@ -136,7 +180,7 @@ export function Call() {
             </div>
 
             {steps.length === 0 ? (
-              <p className="call-wait">No call yet. The log is the HTTP dance, not a screenshot of it.</p>
+              <p className="call-wait">No call yet. The log is the HTTP response, not a screenshot of it.</p>
             ) : (
               <ol className="call-log">
                 {steps.map((s, i) => (
