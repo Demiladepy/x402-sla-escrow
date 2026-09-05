@@ -28,6 +28,7 @@ import {
   createSettler,
 } from "@x402sla/sdk";
 import { assertTokenOnChain, NETWORKS } from "../../scripts/networks.js";
+import { resolveCeloRpc, rpcLabel } from "../../scripts/rpc.js";
 import { SCHEMA_HASH, createSellerApp } from "./seller-app.js";
 import { artifact } from "./chain.js";
 
@@ -48,9 +49,9 @@ async function main() {
   const asset = assertTokenOnChain(net, token);
 
   const account = privateKeyToAccount(required("AGENT_PRIVATE_KEY") as Hex);
-  const rpc = process.env.CELO_RPC_URL ?? net.chain.rpcUrls.default.http[0];
-  const publicClient = createPublicClient({ chain: celo, transport: http(rpc) });
-  const wallet = createWalletClient({ account, chain: celo, transport: http(rpc) });
+  const rpc = resolveCeloRpc("mainnet");
+  const publicClient = createPublicClient({ chain: celo, transport: http(rpc.url) });
+  const wallet = createWalletClient({ account, chain: celo, transport: http(rpc.url) });
 
   const chainId = await publicClient.getChainId();
   if (chainId !== celo.id) throw new Error(`RPC is chain ${chainId}, not Celo mainnet.`);
@@ -73,6 +74,7 @@ async function main() {
   const codes = attributionCodesFromEnv();
   console.log(`owner    ${account.address}`);
   console.log(`network  ${net.label}  ${chainId}`);
+  console.log(`rpc      ${rpcLabel(rpc.source)}`);
   console.log(`token    ${asset.symbol}  ${asset.address}`);
   console.log(`CELO     ${formatUnits(celoBal, 18)}`);
   console.log(`${asset.symbol.padEnd(8)}${formatUnits(tokenBal, asset.decimals)}`);

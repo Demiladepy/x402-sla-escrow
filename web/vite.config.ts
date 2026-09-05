@@ -1,21 +1,36 @@
+import { loadEnv } from "vite";
 import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { fileURLToPath } from "node:url";
 import { serveRate } from "./server/rateHandler";
+import { describeStack } from "./server/stack";
 
-function publicRate(): Plugin {
+const rootEnv = loadEnv("", fileURLToPath(new URL("..", import.meta.url)), "");
+for (const [k, v] of Object.entries(rootEnv)) {
+  if (process.env[k] === undefined) process.env[k] = v;
+}
+
+function publicApi(): Plugin {
   return {
-    name: "public-rate",
+    name: "public-api",
     configureServer(server) {
       server.middlewares.use(async (req: Connect.IncomingMessage, res, next) => {
         const raw = req.url ?? "";
         const path = raw.split("?")[0];
-        if (path !== "/api/rate") {
+        if (path !== "/api/rate" && path !== "/api/stack") {
           next();
           return;
         }
         if (req.method === "OPTIONS") {
           res.statusCode = 204;
           res.end();
+          return;
+        }
+        if (path === "/api/stack") {
+          res.statusCode = 200;
+          res.setHeader("content-type", "application/json");
+          res.setHeader("access-control-allow-origin", "*");
+          res.end(JSON.stringify(describeStack()));
           return;
         }
         const url = new URL(raw, "http://localhost");
@@ -29,18 +44,20 @@ function publicRate(): Plugin {
   };
 }
 
+function bypassPublic(url?: string) {
+  const path = url?.split("?")[0];
+  return path === "/api/rate" || path === "/api/stack" ? url : undefined;
+}
+
 export default defineConfig({
-  // GitHub project pages need /x402-sla-escrow/. Vercel and local stay /.
   base: process.env.VITE_BASE || "/",
-  plugins: [react(), publicRate()],
+  plugins: [react(), publicApi()],
   server: {
     port: 5173,
     proxy: {
-      // Ledger/state stay on the local demo seller when one is running.
-      // /api/rate is served above, so the Call playground works without it.
       "/api": {
         target: "http://127.0.0.1:4021",
-        bypass: (req) => (req.url?.split("?")[0] === "/api/rate" ? req.url : undefined),
+        bypass: (req) => bypassPublic(req.url),
       },
     },
   },

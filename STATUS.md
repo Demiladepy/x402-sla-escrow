@@ -13,6 +13,8 @@ verified, and what is still blocked. Updated as things land.
 | `sdk/` | Buyer client (`fetch` that pays), seller middleware, batching settler with ERC-8021 attribution and fee abstraction. |
 | `sdk/src/attribution.ts` | ERC-8021 encoding via `@celo/attribution-tags`, a mainnet guard, and on-chain verification that decodes rather than string-matches. 18 tests. |
 | `web/` + `demo/` | Live dashboard over a running system. Hash scenes `#healthy` `#breach` `#settle` `#system` pin a protocol trace. `demo/src/run.ts` is the scripted walkthrough; `demo/src/serve.ts` is the long-running traffic generator. |
+| Chainstack | `scripts/rpc.ts` prefers `CHAINSTACK_CELO_RPC_URL` / `CHAINSTACK_SEPOLIA_RPC_URL` for deploy, register, balance, feedback, and the Sepolia / mainnet sessions. Logs the source, never the URL. Falls back to Forno. |
+| Cencori | Public `GET /api/rate` asks the Cencori chat gateway to format the published mid when `CENCORI_API_KEY` is set. 450ms budget, then the static mid. Does not invent a price. `GET /api/stack` reports `{rpc, upstream}` with no secrets. |
 
 ## Verified
 
@@ -323,7 +325,7 @@ Env block for that sitting:
 
 ```
 TOKEN=0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771
-CELO_RPC_URL=https://forno.celo.org
+CHAINSTACK_CELO_RPC_URL=   # preferred; CELO_RPC_URL is the fallback
 CELO_ATTRIBUTION_TAG=celo_5ffb6e9c75fb
 ATTRIBUTION_CODE=x402_sla
 FEE_CURRENCY=   # unset — pay gas in CELO
@@ -333,7 +335,7 @@ FEE_CURRENCY=   # unset — pay gas in CELO
 
 The public site is [web-one-drab-31.vercel.app](https://web-one-drab-31.vercel.app/). Do not create a second Vercel project. `appDomain` on the draft is that URL.
 
-`GET /api/rate` is the public Call playground: 402 without `X-PAYMENT`, a seller-signed receipt with it, HTTP 500 or a late 200 when `mode` says so. Served from `web/api/rate.ts` (and the repo-root `api/rate.ts`) so Vercel finds it whether the project root is the repo or `web/`. The page signs an ephemeral PaymentAuth. Nothing from that form is settled. The ledger still shows the **Celo Sepolia rehearsal** when no demo seller is reachable (escrow `0x0d58…abca`, settle `0x6ddd…8794`). Judge scenes `#healthy` `#breach` `#settle` `#system` work on that snapshot. A live seller at `VITE_SELLER_URL` replaces the ledger.
+`GET /api/rate` is the public Call playground: 402 without `X-PAYMENT`, a seller-signed receipt with it, HTTP 500 or a late 200 when `mode` says so. Served from `web/api/rate.ts` (and the repo-root `api/rate.ts`) so Vercel finds it whether the project root is the repo or `web/`. When `CENCORI_API_KEY` is set the quote is formatted by Cencori against the published mid. `GET /api/stack` says whether the RPC is Chainstack and whether the quote is Cencori, and never returns a key. The page signs an ephemeral PaymentAuth. Nothing from that form is settled. The ledger still shows the **Celo Sepolia rehearsal** when no demo seller is reachable (escrow `0x0d58…abca`, settle `0x6ddd…8794`). Judge scenes `#healthy` `#breach` `#settle` `#system` work on that snapshot. A live seller at `VITE_SELLER_URL` replaces the ledger.
 
 Local `vite` still proxies `/api` to `127.0.0.1:4021`. `#settle` can also show baked-in mainnet hashes via `VITE_MAINNET_ESCROW` / `VITE_MAINNET_SETTLE_TX`.
 

@@ -1,7 +1,10 @@
 import { AGENT } from "../lib/site";
+import { quoteName, rpcName, useStack } from "../lib/useStack";
 import { Mark } from "./Mark";
 
 export function Identity() {
+  const stack = useStack();
+
   return (
     <section className="band identity" id="agent">
       <div className="wrap identity-inner" data-reveal>
@@ -12,7 +15,8 @@ export function Identity() {
           <p>
             A seller that serves paid HTTP under an on-chain SLA, and a buyer that pays per call.
             The wallet on chain 42220 is the identity. Reputation is not claimed until a distinct
-            buyer writes it.
+            buyer writes it. Reads go through Chainstack when a node is set. Quotes are formatted
+            by Cencori when a key is set.
           </p>
         </div>
         <dl className="identity-facts">
@@ -32,6 +36,18 @@ export function Identity() {
               <a href={AGENT.repo}>Demiladepy/x402-sla-escrow</a>
             </dd>
           </div>
+          {stack ? (
+            <>
+              <div>
+                <dt>RPC</dt>
+                <dd>{rpcName(stack.rpc)}</dd>
+              </div>
+              <div>
+                <dt>Quote</dt>
+                <dd>{quoteName(stack.upstream)}</dd>
+              </div>
+            </>
+          ) : null}
         </dl>
       </div>
     </section>

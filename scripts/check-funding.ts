@@ -10,6 +10,7 @@
  */
 import { createPublicClient, formatUnits, http, type Address, type Chain } from "viem";
 import { celo, celoSepolia } from "viem/chains";
+import { resolveCeloRpc, rpcLabel, type NetworkKey } from "./rpc.js";
 
 const ERC20_ABI = [
   {
@@ -28,10 +29,9 @@ interface Token {
 }
 
 interface Network {
-  key: string;
+  key: NetworkKey;
   label: string;
   chain: Chain;
-  rpcUrl?: string;
   tokens: Token[];
 }
 
@@ -40,7 +40,6 @@ const NETWORKS: Network[] = [
     key: "mainnet",
     label: "Celo mainnet",
     chain: celo,
-    rpcUrl: process.env.CELO_RPC_URL,
     tokens: [
       { symbol: "cUSD", address: "0x765DE816845861e75A25fCA122bb6898B8B1282a", decimals: 18 },
       { symbol: "USAT", address: "0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771", decimals: 6 },
@@ -53,7 +52,6 @@ const NETWORKS: Network[] = [
     key: "sepolia",
     label: "Celo Sepolia",
     chain: celoSepolia,
-    rpcUrl: process.env.CELO_SEPOLIA_RPC_URL,
     tokens: [
       { symbol: "cUSD", address: "0xEF4d55D6dE8e8d73232827Cd1e9b2F2dBb45bC80", decimals: 18 },
       { symbol: "USDC", address: "0x01C5C0122039549AD1493B8220cABEdD739BC44E", decimals: 6 },
@@ -63,12 +61,13 @@ const NETWORKS: Network[] = [
 ];
 
 async function report(net: Network, address: Address) {
+  const rpc = resolveCeloRpc(net.key);
   const client = createPublicClient({
     chain: net.chain,
-    transport: http(net.rpcUrl ?? net.chain.rpcUrls.default.http[0]),
+    transport: http(rpc.url),
   });
 
-  console.log(`\n${net.label}  (chain ${net.chain.id})`);
+  console.log(`\n${net.label}  (chain ${net.chain.id}, ${rpcLabel(rpc.source)})`);
   console.log("─".repeat(38));
 
   let native: bigint;
@@ -130,7 +129,7 @@ async function main() {
 
   const mainnet = createPublicClient({
     chain: celo,
-    transport: http(process.env.CELO_RPC_URL ?? celo.rpcUrls.default.http[0]),
+    transport: http(resolveCeloRpc("mainnet").url),
   });
   const gas = await mainnet.getBalance({ address }).catch(() => 0n);
 

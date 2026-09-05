@@ -1,5 +1,6 @@
 import { keccak256, recoverTypedDataAddress, toBytes, type Address, type Hex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { quotePair } from "./cencori.js";
 import { domain, EIP712_TYPES, RATES, TERMS } from "./terms.js";
 
 /** Ephemeral. Signs receipts for this process only. Holds nothing. */
@@ -102,12 +103,12 @@ export async function serveRate(url: URL, paymentHeader: string | undefined): Pr
     statusCode = 500;
     payload = { error: "upstream rate provider unavailable" };
   } else {
-    const rate = RATES[pair];
-    if (rate === undefined) {
+    const published = RATES[pair];
+    if (published === undefined) {
       statusCode = 400;
       payload = { error: `unknown pair ${pair}` };
     } else {
-      payload = { pair, rate, asOf: Math.floor(Date.now() / 1000) };
+      payload = await quotePair(pair, published);
     }
   }
 

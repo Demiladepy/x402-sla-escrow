@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { signPayment, type PaymentRequired } from "../lib/playgroundPay";
+import { quoteName, useStack } from "../lib/useStack";
 
 const PAIRS = ["CUSD/NGN", "CUSD/KES", "CUSD/GHS"];
 const BUDGET_MS = 800;
@@ -32,6 +33,7 @@ function ratePath(pair: string, mode: Mode) {
 }
 
 export function Call() {
+  const stack = useStack();
   const [pair, setPair] = useState(PAIRS[0]);
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState<string | null>(null);
@@ -83,7 +85,7 @@ export function Call() {
       const res = await fetch(path, { headers: { "x-payment": payment.header } });
       const observed = Date.now() - started;
       const raw = await res.text();
-      let body: { pair?: string; rate?: number; error?: string } = {};
+      let body: { pair?: string; rate?: number; via?: string; error?: string } = {};
       try {
         body = JSON.parse(raw) as typeof body;
       } catch {
@@ -110,7 +112,11 @@ export function Call() {
         setPaid(false);
         setVerdict("Late data is free data. The buyer does nothing.");
       } else {
-        push({ k: "200", v: `${body.pair}  ${body.rate}  ·  ${observed}ms`, kind: "ok" });
+        push({
+          k: "200",
+          v: `${body.pair}  ${body.rate}  ·  ${observed}ms${body.via ? `  ·  ${body.via}` : ""}`,
+          kind: "ok",
+        });
         push({ k: "receipt", v: "seller-signed ServiceReceipt", kind: "dim" });
         push({ k: "ack", v: "acknowledged · charged 0.001", kind: "ok" });
         setPaid(true);
@@ -177,6 +183,12 @@ export function Call() {
                 <dt>Refund</dt>
                 <dd>do nothing</dd>
               </div>
+              {stack ? (
+                <div>
+                  <dt>Quote</dt>
+                  <dd>{quoteName(stack.upstream)}</dd>
+                </div>
+              ) : null}
             </dl>
           </div>
 

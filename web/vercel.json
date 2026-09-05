@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/rate", "destination": "/api/rate" },
+    { "source": "/api/stack", "destination": "/api/stack" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
