@@ -21,7 +21,6 @@ import {
 } from "viem";
 import { celo } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { resolveCeloRpc, rpcLabel } from "./rpc.js";
 
 const IDENTITY_REGISTRY = "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432" as const;
 
@@ -54,15 +53,14 @@ async function main() {
   const dryRun = process.argv.includes("--dry-run");
   const privateKey = required("AGENT_PRIVATE_KEY") as Hex;
   const agentUri = required("AGENT_URI");
-  const rpc = resolveCeloRpc("mainnet");
+  const rpcUrl = process.env.CELO_RPC_URL ?? "https://forno.celo.org";
 
   const account = privateKeyToAccount(privateKey);
-  const publicClient = createPublicClient({ chain: celo, transport: http(rpc.url) });
-  const wallet = createWalletClient({ account, chain: celo, transport: http(rpc.url) });
+  const publicClient = createPublicClient({ chain: celo, transport: http(rpcUrl) });
+  const wallet = createWalletClient({ account, chain: celo, transport: http(rpcUrl) });
 
   console.log(`agent uri: ${agentUri}`);
   console.log(`owner:     ${account.address}`);
-  console.log(`rpc:       ${rpcLabel(rpc.source)}`);
 
   const probe = await fetch(agentUri).catch((err: Error) => {
     throw new Error(`could not fetch AGENT_URI: ${err.message}`);

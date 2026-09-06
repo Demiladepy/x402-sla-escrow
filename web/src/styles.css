@@ -494,7 +494,7 @@ a:hover {
 .call-terms {
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(4, minmax(4.5rem, auto));
+  grid-template-columns: repeat(3, minmax(4.5rem, auto));
   gap: var(--space-sm) var(--space-md);
 }
 
@@ -510,12 +510,6 @@ a:hover {
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   color: var(--text-dim);
-}
-
-@media (max-width: 640px) {
-  .call-terms {
-    grid-template-columns: repeat(2, minmax(4.5rem, auto));
-  }
 }
 
 .call-pair {

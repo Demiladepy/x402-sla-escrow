@@ -10,7 +10,6 @@
 import { createPublicClient, createWalletClient, http, keccak256, toBytes, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { celo } from "viem/chains";
-import { resolveCeloRpc, rpcLabel } from "./rpc.js";
 
 const REPUTATION = "0x8004BAa17C55a88189AE136b182e5fdA19dE9b63" as const;
 const AGENT_ID = 9807n;
@@ -70,9 +69,8 @@ async function main() {
   console.log(`tag      ${tag}  score ${score}`);
   console.log(`hash     ${feedbackHash}`);
 
-  const rpc = resolveCeloRpc("mainnet");
-  const publicClient = createPublicClient({ chain: celo, transport: http(rpc.url) });
-  console.log(`rpc      ${rpcLabel(rpc.source)}`);
+  const rpc = process.env.CELO_RPC_URL ?? celo.rpcUrls.default.http[0];
+  const publicClient = createPublicClient({ chain: celo, transport: http(rpc) });
 
   await publicClient.simulateContract({
     address: REPUTATION,
@@ -88,7 +86,7 @@ async function main() {
     return;
   }
 
-  const wallet = createWalletClient({ account, chain: celo, transport: http(rpc.url) });
+  const wallet = createWalletClient({ account, chain: celo, transport: http(rpc) });
   const hash = await wallet.writeContract({
     address: REPUTATION,
     abi: ABI,

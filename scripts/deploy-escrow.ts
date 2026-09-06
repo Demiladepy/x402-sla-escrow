@@ -12,7 +12,6 @@
 import { execFileSync } from "node:child_process";
 import { createPublicClient, http, type Address } from "viem";
 import { assertTokenOnChain, resolveNetwork } from "./networks.js";
-import { resolveCeloRpc, rpcLabel } from "./rpc.js";
 
 async function main() {
   const key = process.argv[2];
@@ -24,9 +23,11 @@ async function main() {
   const token = (process.env.TOKEN ?? fallback) as Address;
   const asset = assertTokenOnChain(net, token);
 
-  const rpc = resolveCeloRpc(net.key);
+  const rpc =
+    (net.key === "mainnet" ? process.env.CELO_RPC_URL : process.env.CELO_SEPOLIA_RPC_URL) ??
+    net.chain.rpcUrls.default.http[0];
 
-  const client = createPublicClient({ chain: net.chain, transport: http(rpc.url) });
+  const client = createPublicClient({ chain: net.chain, transport: http(rpc) });
   const chainId = await client.getChainId();
   if (chainId !== net.chain.id) {
     throw new Error(`RPC reports chain ${chainId}, expected ${net.chain.id} (${net.label}).`);
@@ -35,7 +36,7 @@ async function main() {
   console.log(`${net.label}  chain ${chainId}`);
   console.log(`TOKEN     ${asset.symbol}  ${asset.address}  ${asset.decimals} decimals`);
   console.log(`ARBITER   ${process.env.ARBITER ?? "(deployer)"}`);
-  console.log(`rpc       ${rpcLabel(rpc.source)}`);
+  console.log(`rpc       ${rpc}`);
 
   if (dryRun) {
     console.log("\ndry run: chain and TOKEN agree. Nothing was broadcast.");
@@ -53,7 +54,7 @@ async function main() {
       "--root",
       "contracts",
       "--rpc-url",
-      rpc.url,
+      rpc,
       "--private-key",
       pk,
       "--broadcast",
